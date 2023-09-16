@@ -1,0 +1,16 @@
+{
+	"name": "kaboom-template",
+	"scripts": {
+		"start": "npm run open && npm run dev",
+		"build": "esbuild --bundle src/main.js --outfile=www/main.js --minify",
+		"open": "start http:/localhost:8000",
+		"dev": "esbuild --bundle src/main.js --outfile=www/main.js --servedir=www --watch",
+		"bundle": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\""
+	},
+	"dependencies": {
+		"kaboom": "^3000.1.6"
+	},
+	"devDependencies": {
+		"esbuild": "^0.19.3"
+	}
+}
