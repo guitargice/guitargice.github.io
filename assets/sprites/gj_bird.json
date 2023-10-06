@@ -1,0 +1,245 @@
+{
+	"textures": [
+		{
+			"image": "gj_bird-0.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1816,
+				"h": 256
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "GJ-Bird-back-bonk",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 0,
+						"w": 222,
+						"h": 256
+					},
+					"frame": {
+						"x": 0,
+						"y": 0,
+						"w": 222,
+						"h": 256
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "GJ-Bird-back",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 0,
+						"w": 222,
+						"h": 256
+					},
+					"frame": {
+						"x": 222,
+						"y": 0,
+						"w": 222,
+						"h": 256
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "GJ-Bird-bonk",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 22,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"frame": {
+						"x": 444,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "GJ-Bird",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 22,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"frame": {
+						"x": 656,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "GJ-Bird-blink",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 22,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"frame": {
+						"x": 868,
+						"y": 0,
+						"w": 212,
+						"h": 256
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "rock-purple",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 0,
+						"w": 251,
+						"h": 255
+					},
+					"frame": {
+						"x": 1080,
+						"y": 0,
+						"w": 251,
+						"h": 255
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "rock-red",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 0,
+						"w": 251,
+						"h": 255
+					},
+					"frame": {
+						"x": 1331,
+						"y": 0,
+						"w": 251,
+						"h": 255
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "shadow",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 18,
+						"y": 120,
+						"w": 234,
+						"h": 136
+					},
+					"frame": {
+						"x": 1582,
+						"y": 0,
+						"w": 234,
+						"h": 136
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "wing",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 128,
+						"h": 128
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 10,
+						"w": 128,
+						"h": 109
+					},
+					"frame": {
+						"x": 1582,
+						"y": 136,
+						"w": 128,
+						"h": 109
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:b23794c41f91dfdc9230ebe680e11f09:f48f903f2df9d5ecd1a0e9cc8bfd0207:a83c108b655fbe456942d9cbfb042ae3$"
+	}
+}
