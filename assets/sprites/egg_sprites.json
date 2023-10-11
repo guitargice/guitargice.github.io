@@ -1,0 +1,83 @@
+{
+	"textures": [
+		{
+			"image": "egg_sprites.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 298,
+				"h": 809
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "egg",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 500,
+						"h": 500
+					},
+					"spriteSourceSize": {
+						"x": 102,
+						"y": 63,
+						"w": 296,
+						"h": 336
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 296,
+						"h": 336
+					}
+				},
+				{
+					"filename": "egg_cracked_bottom",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 500,
+						"h": 500
+					},
+					"spriteSourceSize": {
+						"x": 102,
+						"y": 123,
+						"w": 296,
+						"h": 276
+					},
+					"frame": {
+						"x": 1,
+						"y": 339,
+						"w": 296,
+						"h": 276
+					}
+				},
+				{
+					"filename": "egg_cracked_top",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 500,
+						"h": 500
+					},
+					"spriteSourceSize": {
+						"x": 118,
+						"y": 63,
+						"w": 267,
+						"h": 191
+					},
+					"frame": {
+						"x": 1,
+						"y": 617,
+						"w": 267,
+						"h": 191
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:ef1cc55ede379134cfb8efb960857c53:531c14d488d0c69ed3ebeb5afaa9b106:44de4a8677adb7edd94d4131203ab9a3$"
+	}
+}
