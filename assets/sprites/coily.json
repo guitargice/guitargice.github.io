@@ -1,0 +1,104 @@
+{
+	"textures": [
+		{
+			"image": "coily.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 448,
+				"h": 675
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "coily_front_jump",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 48,
+						"w": 222,
+						"h": 415
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 222,
+						"h": 415
+					}
+				},
+				{
+					"filename": "coily_back_jump",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 512
+					},
+					"spriteSourceSize": {
+						"x": 30,
+						"y": 42,
+						"w": 195,
+						"h": 427
+					},
+					"frame": {
+						"x": 225,
+						"y": 1,
+						"w": 195,
+						"h": 427
+					}
+				},
+				{
+					"filename": "coily_back",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 0,
+						"w": 222,
+						"h": 256
+					},
+					"frame": {
+						"x": 1,
+						"y": 418,
+						"w": 222,
+						"h": 256
+					}
+				},
+				{
+					"filename": "coily_front",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 16,
+						"w": 222,
+						"h": 224
+					},
+					"frame": {
+						"x": 225,
+						"y": 430,
+						"w": 222,
+						"h": 224
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:54d128e987123ce7049647c42326f20d:0a127702e942f72160fe241c59533be5:8dc07824da0d383e3c2b32890d331406$"
+	}
+}

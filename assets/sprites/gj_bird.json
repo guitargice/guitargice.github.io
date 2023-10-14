@@ -1,7 +1,7 @@
 {
 	"textures": [
 		{
-			"image": "gj_bird-0.png",
+			"image": "gj_bird.png",
 			"format": "RGBA8888",
 			"size": {
 				"w": 1816,
@@ -228,6 +228,31 @@
 						"y": 136,
 						"w": 128,
 						"h": 109
+					},
+					"anchor": {
+						"x": 0.5,
+						"y": 0.5
+					}
+				},
+				{
+					"filename": "rock-blue",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 0,
+						"w": 251,
+						"h": 255
+					},
+					"frame": {
+						"x": 1814,
+						"y": 0,
+						"w": 251,
+						"h": 255
 					},
 					"anchor": {
 						"x": 0.5,

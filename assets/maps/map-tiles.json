@@ -1,0 +1,62 @@
+{
+	"textures": [
+		{
+			"image": "map-tiles.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 104,
+				"h": 52
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "cube-grey.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 50,
+						"h": 50
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 50,
+						"h": 50
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 50,
+						"h": 50
+					}
+				},
+				{
+					"filename": "cube-ice.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 50,
+						"h": 50
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 50,
+						"h": 50
+					},
+					"frame": {
+						"x": 53,
+						"y": 1,
+						"w": 50,
+						"h": 50
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:f06513b6c43136f77d46bf837d06277a:ceccf29829ae2f8e8d014703771b7be6:e1681c6011e5b21fafa27c079e232ca4$"
+	}
+}
