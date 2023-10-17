@@ -1,0 +1,62 @@
+{
+	"textures": [
+		{
+			"image": "frog.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 256,
+				"h": 256
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "frog",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 128,
+						"h": 128
+					},
+					"spriteSourceSize": {
+						"x": 14,
+						"y": 19,
+						"w": 103,
+						"h": 78
+					},
+					"frame": {
+						"x": 131,
+						"y": 1,
+						"w": 103,
+						"h": 78
+					}
+				},
+				{
+					"filename": "frog_jump",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 128,
+						"h": 128
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 3,
+						"w": 128,
+						"h": 125
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 128,
+						"h": 125
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:2ed787afa90714f67707dbbed6835f28:b78be29e56764f6d1055158a991bd818:8dde0dd0197344c2f9f9f01d8d204375$"
+	}
+}
