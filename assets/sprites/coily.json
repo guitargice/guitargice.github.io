@@ -10,6 +10,27 @@
 			"scale": 1,
 			"frames": [
 				{
+					"filename": "coily_front",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 256,
+						"h": 256
+					},
+					"spriteSourceSize": {
+						"x": 17,
+						"y": 16,
+						"w": 222,
+						"h": 224
+					},
+					"frame": {
+						"x": 225,
+						"y": 430,
+						"w": 222,
+						"h": 224
+					}
+				},
+				{
 					"filename": "coily_front_jump",
 					"rotated": false,
 					"trimmed": true,
@@ -70,27 +91,6 @@
 						"y": 418,
 						"w": 222,
 						"h": 256
-					}
-				},
-				{
-					"filename": "coily_front",
-					"rotated": false,
-					"trimmed": true,
-					"sourceSize": {
-						"w": 256,
-						"h": 256
-					},
-					"spriteSourceSize": {
-						"x": 17,
-						"y": 16,
-						"w": 222,
-						"h": 224
-					},
-					"frame": {
-						"x": 225,
-						"y": 430,
-						"w": 222,
-						"h": 224
 					}
 				}
 			]
