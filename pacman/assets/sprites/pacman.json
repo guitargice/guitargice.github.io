@@ -1,0 +1,713 @@
+{
+	"textures": [
+		{
+			"image": "pacman.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 32,
+				"h": 213
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "Node.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 24,
+						"h": 24
+					},
+					"spriteSourceSize": {
+						"x": 3,
+						"y": 3,
+						"w": 18,
+						"h": 18
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 18,
+						"h": 18
+					}
+				},
+				{
+					"filename": "Fruit_Key.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 3,
+						"y": 0,
+						"w": 9,
+						"h": 15
+					},
+					"frame": {
+						"x": 21,
+						"y": 1,
+						"w": 9,
+						"h": 15
+					}
+				},
+				{
+					"filename": "Pacman_Death_08.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 9,
+						"h": 7
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 9,
+						"h": 7
+					},
+					"frame": {
+						"x": 21,
+						"y": 18,
+						"w": 9,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Ghost_Body_01.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 21,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Fruit_Bell.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 12,
+						"h": 13
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 12,
+						"h": 13
+					},
+					"frame": {
+						"x": 19,
+						"y": 27,
+						"w": 12,
+						"h": 13
+					}
+				},
+				{
+					"filename": "Ghost_Body_02.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 39,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Fruit_Apple.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 12,
+						"h": 12
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 12,
+						"h": 12
+					},
+					"frame": {
+						"x": 19,
+						"y": 42,
+						"w": 12,
+						"h": 12
+					}
+				},
+				{
+					"filename": "Fruit_Cherry.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 12,
+						"h": 12
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 12,
+						"h": 12
+					},
+					"frame": {
+						"x": 19,
+						"y": 56,
+						"w": 12,
+						"h": 12
+					}
+				},
+				{
+					"filename": "Ghost_Vulnerable_Blue_01.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 57,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Fruit_Orange.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 12,
+						"h": 12
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 12,
+						"h": 12
+					},
+					"frame": {
+						"x": 19,
+						"y": 70,
+						"w": 12,
+						"h": 12
+					}
+				},
+				{
+					"filename": "Ghost_Vulnerable_Blue_02.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 75,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Ghost_Eyes_Down.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 4,
+						"w": 12,
+						"h": 7
+					},
+					"frame": {
+						"x": 19,
+						"y": 84,
+						"w": 12,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Ghost_Vulnerable_White_01.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 93,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Ghost_Eyes_Left.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 1,
+						"y": 3,
+						"w": 12,
+						"h": 7
+					},
+					"frame": {
+						"x": 19,
+						"y": 93,
+						"w": 12,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Ghost_Eyes_Right.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 3,
+						"y": 3,
+						"w": 12,
+						"h": 7
+					},
+					"frame": {
+						"x": 19,
+						"y": 102,
+						"w": 12,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Ghost_Vulnerable_White_02.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 16,
+						"h": 16
+					},
+					"frame": {
+						"x": 1,
+						"y": 111,
+						"w": 16,
+						"h": 16
+					}
+				},
+				{
+					"filename": "Ghost_Eyes_Up.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 1,
+						"w": 12,
+						"h": 7
+					},
+					"frame": {
+						"x": 19,
+						"y": 111,
+						"w": 12,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Pacman_03.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 15,
+						"h": 15
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 11,
+						"h": 15
+					},
+					"frame": {
+						"x": 19,
+						"y": 120,
+						"w": 11,
+						"h": 15
+					}
+				},
+				{
+					"filename": "Pacman_01.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 15
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 15
+					},
+					"frame": {
+						"x": 1,
+						"y": 129,
+						"w": 15,
+						"h": 15
+					}
+				},
+				{
+					"filename": "Pacman_Death_11.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 16,
+						"h": 16
+					},
+					"spriteSourceSize": {
+						"x": 1,
+						"y": 2,
+						"w": 13,
+						"h": 12
+					},
+					"frame": {
+						"x": 18,
+						"y": 137,
+						"w": 13,
+						"h": 12
+					}
+				},
+				{
+					"filename": "Pacman_Death_02.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 8
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 8
+					},
+					"frame": {
+						"x": 1,
+						"y": 146,
+						"w": 15,
+						"h": 8
+					}
+				},
+				{
+					"filename": "Pacman_Death_01.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 13,
+						"h": 9
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 13,
+						"h": 9
+					},
+					"frame": {
+						"x": 18,
+						"y": 151,
+						"w": 13,
+						"h": 9
+					}
+				},
+				{
+					"filename": "Pacman_Death_03.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 6
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 6
+					},
+					"frame": {
+						"x": 1,
+						"y": 156,
+						"w": 15,
+						"h": 6
+					}
+				},
+				{
+					"filename": "Pacman_Death_07.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 13,
+						"h": 7
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 13,
+						"h": 7
+					},
+					"frame": {
+						"x": 18,
+						"y": 162,
+						"w": 13,
+						"h": 7
+					}
+				},
+				{
+					"filename": "Pacman_Death_06.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 6
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 6
+					},
+					"frame": {
+						"x": 1,
+						"y": 164,
+						"w": 15,
+						"h": 6
+					}
+				},
+				{
+					"filename": "Fruit_Melon.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 11,
+						"h": 14
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 11,
+						"h": 14
+					},
+					"frame": {
+						"x": 18,
+						"y": 171,
+						"w": 11,
+						"h": 14
+					}
+				},
+				{
+					"filename": "Pacman_Death_04.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 5
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 5
+					},
+					"frame": {
+						"x": 1,
+						"y": 172,
+						"w": 15,
+						"h": 5
+					}
+				},
+				{
+					"filename": "Pacman_Death_05.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 15,
+						"h": 5
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 15,
+						"h": 5
+					},
+					"frame": {
+						"x": 1,
+						"y": 179,
+						"w": 15,
+						"h": 5
+					}
+				},
+				{
+					"filename": "Pacman_02.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 15,
+						"h": 15
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 14,
+						"h": 15
+					},
+					"frame": {
+						"x": 1,
+						"y": 186,
+						"w": 14,
+						"h": 15
+					}
+				},
+				{
+					"filename": "Fruit_Strawberry.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 11,
+						"h": 12
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 11,
+						"h": 12
+					},
+					"frame": {
+						"x": 17,
+						"y": 187,
+						"w": 11,
+						"h": 12
+					}
+				},
+				{
+					"filename": "Pacman_Death_10.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 1,
+						"h": 6
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 1,
+						"h": 6
+					},
+					"frame": {
+						"x": 30,
+						"y": 187,
+						"w": 1,
+						"h": 6
+					}
+				},
+				{
+					"filename": "Fruit_GalaxianStarship.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 11,
+						"h": 11
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 11,
+						"h": 11
+					},
+					"frame": {
+						"x": 17,
+						"y": 201,
+						"w": 11,
+						"h": 11
+					}
+				},
+				{
+					"filename": "Pacman_Death_09.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 5,
+						"h": 7
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 5,
+						"h": 7
+					},
+					"frame": {
+						"x": 1,
+						"y": 203,
+						"w": 5,
+						"h": 7
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:c9a08b036b744c52ec3848bc1d799209:75f6b4a4f28422248dcb13b0b39a0272:d80bdf807acf6febb9eeb1d9fd35eef5$"
+	}
+}
