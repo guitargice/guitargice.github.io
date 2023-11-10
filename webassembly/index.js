@@ -1,4 +1,4 @@
-const WIDTH = 128, HEIGHT = 128, FPS = 10;
+const WIDTH = 128, HEIGHT = 128, FPS = 60;
 
 const runWasm = async () => {
   const importObject = {
