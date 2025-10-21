@@ -5,36 +5,62 @@ export class Sentences extends Phaser.Scene {
     constructor() {
         super('Sentences');
         
-        // Keyboard display
-        this.keyboard = null;
+        // Bind the keyboard handler to maintain proper 'this' context
+        this.boundHandleKeyPress = this.handleKeyPress.bind(this);
         
         // Sentence pool for different difficulty levels
         this.sentencePools = {
+            beginner: [
+                'f f f j j j f f j j f j f j',
+                'd d d k k k d d k k d k d k',
+                's s s l l l s s l l s l s l',
+                'a a a ; ; ; a a ; ; a ; a ;',
+                'f d s a j k l ; a s d f j k l ;'
+            ],
             easy: [
                 'the cat sat on the mat',
                 'a dog ran in the park',
                 'she has a red car',
                 'he can see the sun',
                 'we like to play',
-                'the sky is blue today'
+                'the sky is blue today',
+                'my friend has a bike',
+                'they will go to the store',
+                'it is a nice day',
+                'we can read the book'
             ],
             medium: [
                 'The quick brown fox jumps over the lazy dog.',
                 'Practice makes perfect every single time.',
                 'Learning to type is a valuable skill.',
                 'Focus and patience lead to success.',
-                'Every journey begins with a single step.'
+                'Every journey begins with a single step.',
+                'Time and effort will improve your abilities.',
+                'Typing quickly requires regular practice sessions.',
+                'Your progress depends on daily dedication.',
+                'Speed comes naturally with proper technique.',
+                'Consistent training builds muscle memory fast.'
             ],
             hard: [
                 'The complexity of modern programming requires precision and attention to detail.',
                 'Mastering touch typing significantly improves productivity and efficiency.',
                 'Understanding keyboard layouts enhances your overall typing performance.',
-                'Professional typists maintain consistent accuracy at high speeds.'
+                'Professional typists maintain consistent accuracy at high speeds.',
+                'Advanced techniques involve minimizing hand movement across the keyboard.',
+                'Experienced programmers can type without looking at their keyboards.',
+                'Developing expertise requires thousands of hours of deliberate practice.',
+                'Exceptional typists achieve remarkable speeds exceeding 100 words per minute.',
+                'Comprehensive training programs emphasize both accuracy and velocity simultaneously.',
+                'Sophisticated algorithms optimize keyboard layouts for maximum efficiency and comfort.'
             ]
         };
-        
-        this.currentDifficulty = 'easy';
+    }
+
+    init() {
+        // Reset all variables when scene starts/restarts
+        this.currentDifficulty = 'beginner';
         this.currentSentence = '';
+        this.lastSentence = ''; // Track last sentence to avoid repeats
         this.currentIndex = 0;
         this.letterObjects = [];
         
@@ -51,6 +77,9 @@ export class Sentences extends Phaser.Scene {
         
         // Dialog state
         this.dialogOpen = false;
+        
+        // Keyboard display
+        this.keyboard = null;
     }
 
     preload() {
@@ -58,6 +87,7 @@ export class Sentences extends Phaser.Scene {
         this.load.audio('typeSound', 'assets/sounds/type.wav');
         this.load.audio('spaceSound', 'assets/sounds/space.wav');
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
+        this.load.audio('eraseSound', 'assets/sounds/erase.wav');
     }
 
     create() {
@@ -65,8 +95,8 @@ export class Sentences extends Phaser.Scene {
         this.createBackButton();
 
         // Title
-        this.add.text(640, 40, 'Type the Sentence', {
-            fontSize: '48px',
+        this.add.text(640, 40, 'Words and Sentences', {
+            fontSize: '32px',
             fontFamily: 'Arial',
             color: '#ffffff',
             fontStyle: 'bold'
@@ -96,9 +126,8 @@ export class Sentences extends Phaser.Scene {
         // Create keyboard display at bottom
         this.keyboard = new KeyboardDisplay(this, 180, 480);
 
-        // Set up keyboard input (remove first to prevent duplicates)
-        this.input.keyboard.off('keydown', this.handleKeyPress, this);
-        this.input.keyboard.on('keydown', this.handleKeyPress, this);
+        // Set up keyboard input
+        this.input.keyboard.on('keydown', this.boundHandleKeyPress);
 
         // Start first sentence
         this.loadNewSentence();
@@ -114,7 +143,7 @@ export class Sentences extends Phaser.Scene {
 
     shutdown() {
         // Clean up keyboard listener when scene shuts down
-        this.input.keyboard.off('keydown', this.handleKeyPress, this);
+        this.input.keyboard.off('keydown', this.boundHandleKeyPress);
     }
 
     createBackButton() {
@@ -136,9 +165,9 @@ export class Sentences extends Phaser.Scene {
     }
 
     createDifficultySelector() {
-        const difficulties = ['easy', 'medium', 'hard'];
-        const startX = 490; // Centered so middle button is at 640
-        const spacing = 150;
+        const difficulties = ['beginner', 'easy', 'medium', 'hard'];
+        const startX = 430; // Centered for 4 buttons
+        const spacing = 140;
 
         this.difficultyButtons = {};
 
@@ -191,15 +220,32 @@ export class Sentences extends Phaser.Scene {
         this.incorrectCount = 0;
         this.totalChars = 0;
         this.totalElapsedTime = 0;
+        
+        // Reset last sentence when changing difficulty
+        this.lastSentence = '';
 
         // Load new sentence
         this.loadNewSentence();
     }
 
     loadNewSentence() {
-        // Pick random sentence from current difficulty
+        // Pick random sentence from current difficulty, avoiding the last one
         const pool = this.sentencePools[this.currentDifficulty];
-        this.currentSentence = pool[Phaser.Math.Between(0, pool.length - 1)];
+        
+        // If pool has only one sentence, just use it
+        if (pool.length === 1) {
+            this.currentSentence = pool[0];
+        } else {
+            // Pick a different sentence from the last one
+            let newSentence;
+            do {
+                newSentence = pool[Phaser.Math.Between(0, pool.length - 1)];
+            } while (newSentence === this.lastSentence && pool.length > 1);
+            
+            this.lastSentence = this.currentSentence;
+            this.currentSentence = newSentence;
+        }
+        
         this.currentIndex = 0;
 
         // Reset timer for new sentence
@@ -299,12 +345,28 @@ export class Sentences extends Phaser.Scene {
         for (let i = 0; i < this.currentSentence.length; i++) {
             const char = this.currentSentence[i];
             
+            // In beginner mode, skip drawing spaces entirely - just leave empty gaps
+            if (this.currentDifficulty === 'beginner' && char === ' ') {
+                this.letterObjects.push({
+                    char: char,
+                    bg: null,
+                    text: null,
+                    status: 'pending',
+                    wasIncorrect: false,
+                    isSpace: true // Mark as space for easy identification
+                });
+                continue;
+            }
+            
             // Use position from charPositions array
             const pos = charPositions[i] || { x: 0, y: 0 };
 
             // Background box
             const bg = this.add.rectangle(pos.x, pos.y, 28, 40, 0x2c2c54);
-            bg.setStrokeStyle(2, i === 0 ? 0x4a9aff : 0x4a4a8a);
+            // Set initial highlight only for first actual letter
+            const isFirstLetter = this.letterObjects.length === 0 || 
+                                 (this.letterObjects.length > 0 && this.letterObjects.every(obj => obj.isSpace));
+            bg.setStrokeStyle(2, isFirstLetter ? 0x4a9aff : 0x4a4a8a);
 
             // Letter text
             const text = this.add.text(pos.x, pos.y, char, {
@@ -320,12 +382,21 @@ export class Sentences extends Phaser.Scene {
                 char: char,
                 bg: bg,
                 text: text,
-                status: 'pending' // pending, correct, incorrect
+                status: 'pending', // pending, correct, incorrect, corrected
+                wasIncorrect: false, // Track if this letter was ever typed incorrectly
+                isSpace: false
             });
         }
 
+        // In beginner mode, auto-skip any leading spaces
+        if (this.currentDifficulty === 'beginner') {
+            this.autoSkipSpaces();
+        }
+
         // Highlight first key on keyboard
-        this.keyboard.highlightKey(this.currentSentence[0]);
+        if (this.currentIndex < this.currentSentence.length) {
+            this.keyboard.highlightKey(this.currentSentence[this.currentIndex]);
+        }
 
         this.updateStats();
     }
@@ -335,9 +406,19 @@ export class Sentences extends Phaser.Scene {
 
         let pressedKey = event.key;
 
+        // Handle backspace
+        if (pressedKey === 'Backspace') {
+            this.handleBackspace();
+            return;
+        }
+
         // Handle special case for space
         if (pressedKey === ' ') {
-            // Space is treated normally
+            // In beginner mode, ignore space key presses (spaces are auto-completed)
+            if (this.currentDifficulty === 'beginner') {
+                return;
+            }
+            // Space is treated normally in other modes
         } else if (pressedKey.length !== 1) {
             // Ignore special keys
             return;
@@ -362,9 +443,64 @@ export class Sentences extends Phaser.Scene {
         if (isCorrect) {
             this.handleCorrectKey();
         } else {
-            this.handleIncorrectKey();
+            this.handleIncorrectKey(pressedKey);
         }
 
+        this.updateStats();
+    }
+
+    handleBackspace() {
+        // Can only backspace if we've typed at least one character
+        if (this.currentIndex === 0) {
+            return;
+        }
+
+        // Play erase sound
+        this.sound.play('eraseSound');
+
+        // Move back one character
+        this.currentIndex--;
+        let letterObj = this.letterObjects[this.currentIndex];
+
+        // Reverse the counting based on previous status
+        if (letterObj.status === 'correct') {
+            this.correctCount--;
+            this.totalChars--;
+        } else if (letterObj.status === 'incorrect') {
+            this.incorrectCount--;
+            this.totalChars--;
+        } else if (letterObj.status === 'corrected') {
+            this.correctCount--; // Corrected letters counted as correct
+            this.totalChars--;
+        }
+
+        // Reset the letter to pending state (but keep wasIncorrect flag)
+        letterObj.status = 'pending';
+        if (letterObj.bg) {
+            letterObj.bg.setFillStyle(0x2c2c54);
+        }
+        
+        // In beginner mode, auto-backspace through spaces too
+        if (this.currentDifficulty === 'beginner') {
+            while (this.currentIndex > 0 && this.currentSentence[this.currentIndex - 1] === ' ') {
+                this.currentIndex--;
+                letterObj = this.letterObjects[this.currentIndex];
+                
+                // Reverse the space counting
+                if (letterObj.status === 'correct') {
+                    this.correctCount--;
+                    this.totalChars--;
+                }
+                
+                // Reset space to pending (no visual to update)
+                letterObj.status = 'pending';
+            }
+        }
+        
+        // Update highlight
+        this.updateHighlight();
+        
+        // Update stats
         this.updateStats();
     }
 
@@ -372,20 +508,44 @@ export class Sentences extends Phaser.Scene {
         const letterObj = this.letterObjects[this.currentIndex];
         const currentChar = this.currentSentence[this.currentIndex];
         
-        // Mark as correct (green)
-        letterObj.bg.setFillStyle(0x4CAF50);
-        letterObj.status = 'correct';
+        // Check if this letter was previously incorrect
+        if (letterObj.wasIncorrect) {
+            // Mark as corrected (orange)
+            if (letterObj.bg) {
+                letterObj.bg.setFillStyle(0xFF9800); // Orange color
+            }
+            letterObj.status = 'corrected';
+        } else {
+            // Mark as correct (green)
+            if (letterObj.bg) {
+                letterObj.bg.setFillStyle(0x4CAF50);
+            }
+            letterObj.status = 'correct';
+        }
+        
         this.correctCount++;
         this.totalChars++;
 
         // Flash keyboard key green
         this.keyboard.flashKey(currentChar, 0x4CAF50);
 
-        // Create confetti effect
-        this.createConfetti(letterObj.bg.x, letterObj.bg.y);
+        // Create confetti effect (smaller for corrected letters)
+        if (letterObj.bg) { // Only create confetti if there's a visual element
+            if (letterObj.wasIncorrect) {
+                // Smaller confetti for corrections
+                this.createConfetti(letterObj.bg.x, letterObj.bg.y, 4);
+            } else {
+                this.createConfetti(letterObj.bg.x, letterObj.bg.y);
+            }
+        }
 
         // Move to next letter
         this.currentIndex++;
+
+        // In beginner mode, auto-skip spaces
+        if (this.currentDifficulty === 'beginner') {
+            this.autoSkipSpaces();
+        }
 
         if (this.currentIndex >= this.currentSentence.length) {
             // Sentence complete! Stop the timer and accumulate elapsed time
@@ -402,32 +562,55 @@ export class Sentences extends Phaser.Scene {
         }
     }
 
-    handleIncorrectKey() {
+    autoSkipSpaces() {
+        // Auto-skip any consecutive spaces in beginner mode
+        while (this.currentIndex < this.currentSentence.length && 
+               this.currentSentence[this.currentIndex] === ' ') {
+            const letterObj = this.letterObjects[this.currentIndex];
+            
+            // Mark space as correct without user input (no visual needed)
+            letterObj.status = 'correct';
+            this.correctCount++;
+            this.totalChars++;
+            
+            this.currentIndex++;
+        }
+    }
+
+    handleIncorrectKey(pressedKey) {
         const letterObj = this.letterObjects[this.currentIndex];
-        const currentChar = this.currentSentence[this.currentIndex];
         
-        // Mark as incorrect (red)
-        letterObj.bg.setFillStyle(0xF44336);
+        // Mark as incorrect (red) and flag that it was incorrect
+        if (letterObj.bg) {
+            letterObj.bg.setFillStyle(0xF44336);
+            
+            // Flash effect
+            this.tweens.add({
+                targets: letterObj.bg,
+                alpha: 0.5,
+                duration: 100,
+                yoyo: true
+            });
+        }
+        
         letterObj.status = 'incorrect';
+        letterObj.wasIncorrect = true; // Mark for potential correction
         this.incorrectCount++;
         this.totalChars++;
 
-        // Flash keyboard key red
-        this.keyboard.flashKey(currentChar, 0xF44336);
+        // Flash the actual key that was pressed (not the expected key)
+        this.keyboard.flashKey(pressedKey, 0xF44336);
 
         // Play error sound
         this.sound.play('whoopsieSound');
 
-        // Flash effect
-        this.tweens.add({
-            targets: letterObj.bg,
-            alpha: 0.5,
-            duration: 100,
-            yoyo: true
-        });
-
         // Move to next letter anyway
         this.currentIndex++;
+
+        // In beginner mode, auto-skip spaces
+        if (this.currentDifficulty === 'beginner') {
+            this.autoSkipSpaces();
+        }
 
         if (this.currentIndex >= this.currentSentence.length) {
             // Sentence complete! Stop the timer and accumulate elapsed time
@@ -445,16 +628,27 @@ export class Sentences extends Phaser.Scene {
     }
 
     updateHighlight() {
-        // Remove blue outline from all letters
+        // Remove blue outline from all letters (except those already completed)
         this.letterObjects.forEach((obj, index) => {
-            if (obj.status === 'pending') {
-                obj.bg.setStrokeStyle(2, 0x4a4a8a);
+            if (obj.bg) { // Only update if there's a background object
+                if (obj.status === 'pending') {
+                    obj.bg.setStrokeStyle(2, 0x4a4a8a);
+                } else if (obj.status === 'correct') {
+                    obj.bg.setStrokeStyle(2, 0x4a4a8a);
+                } else if (obj.status === 'incorrect') {
+                    obj.bg.setStrokeStyle(2, 0x4a4a8a);
+                } else if (obj.status === 'corrected') {
+                    obj.bg.setStrokeStyle(2, 0x4a4a8a);
+                }
             }
         });
 
         // Add blue outline to current letter
         if (this.currentIndex < this.letterObjects.length) {
-            this.letterObjects[this.currentIndex].bg.setStrokeStyle(2, 0x4a9aff);
+            const currentObj = this.letterObjects[this.currentIndex];
+            if (currentObj.bg) {
+                currentObj.bg.setStrokeStyle(2, 0x4a9aff);
+            }
             
             // Highlight the key on the keyboard
             const nextChar = this.currentSentence[this.currentIndex];
@@ -462,8 +656,7 @@ export class Sentences extends Phaser.Scene {
         }
     }
 
-    createConfetti(x, y) {
-        const numPieces = 8;
+    createConfetti(x, y, numPieces = 8) {
         const colors = [0xffff00, 0xff00ff, 0x00ffff, 0xff8800, 0x88ff00, 0xff0088];
 
         for (let i = 0; i < numPieces; i++) {
@@ -596,4 +789,3 @@ export class Sentences extends Phaser.Scene {
         });
     }
 }
-

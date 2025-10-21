@@ -80,7 +80,7 @@ export class Practice extends Phaser.Scene {
         this.input.keyboard.off('keydown', this.handleKeyPress, this);
         this.input.keyboard.on('keydown', this.handleKeyPress, this);
 
-        this.mountOverlaySvg();
+       // this.mountOverlaySvg();
         
         // Choose the first target key
         this.chooseNewTargetKey();
@@ -111,6 +111,10 @@ export class Practice extends Phaser.Scene {
         // hide left-neutral path in the svg
         const leftNeutral = this.overlaySvg.getElementById('neutral-left');
         if (leftNeutral) leftNeutral.style.display = 'none';
+
+        // hide right-neutral path in the svg
+        const rightNeutral = this.overlaySvg.getElementById('neutral-right');
+        if (rightNeutral) rightNeutral.style.display = 'none';
     }
 
     shutdown() {
@@ -243,7 +247,7 @@ export class Practice extends Phaser.Scene {
         // Highlight the target key on keyboard
         this.keyboard.highlightKey(this.targetKey);
 
-        this.showFinger(this.targetKey.toLowerCase().replace(' ', ''));
+      //  this.showFinger(this.targetKey.toLowerCase().replace(' ', ''));
     }
 
     handleKeyPress(event) {
