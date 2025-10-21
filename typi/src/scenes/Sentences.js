@@ -90,6 +90,7 @@ export class Sentences extends Phaser.Scene {
         this.load.audio('spaceSound', 'assets/sounds/space.wav');
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
         this.load.audio('eraseSound', 'assets/sounds/erase.wav');
+        this.load.audio('chaChingSound', 'assets/sounds/cha-ching.wav');
     }
 
     create() {
@@ -587,6 +588,9 @@ export class Sentences extends Phaser.Scene {
             this.timerRunning = false;
             this.totalElapsedTime += this.currentElapsedTime;
             
+            // Play completion sound
+            this.sound.play('chaChingSound');
+            
             // Load next one
             this.time.delayedCall(500, () => {
                 this.loadNewSentence();
@@ -651,6 +655,9 @@ export class Sentences extends Phaser.Scene {
             // Sentence complete! Stop the timer and accumulate elapsed time
             this.timerRunning = false;
             this.totalElapsedTime += this.currentElapsedTime;
+            
+            // Play completion sound
+            this.sound.play('chaChingSound');
             
             // Load next one
             this.time.delayedCall(500, () => {
