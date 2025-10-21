@@ -1,8 +1,14 @@
 export class KeyboardDisplay {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, options = {}) {
         this.scene = scene;
         this.x = x;
         this.y = y;
+        
+        // Optional: Enable SVG hand overlay
+        this.showHandOverlay = options.showHandOverlay || false;
+        this.overlayElementId = options.overlayElementId || 'keyboard-overlay';
+        this.overlayOffsetX = options.overlayOffsetX || 0;
+        this.overlayOffsetY = options.overlayOffsetY || 0;
         
         // Keyboard layout - standard QWERTY layout
         this.keyboardLayout = [
@@ -22,7 +28,120 @@ export class KeyboardDisplay {
         // Track key that is currently flashing (to prevent resetting it)
         this.flashingKey = null;
         
+        // SVG overlay elements
+        this.overlayEl = null;
+        this.overlaySvg = null;
+        
+        // Map keys to their SVG path IDs
+        this.keyToPathMap = {
+            '`': 'tilda',
+            '1': 'key-1',
+            '2': 'key-2',
+            '3': 'key-3',
+            '4': 'key-4',
+            '5': 'key-5',
+            '6': 'key-6',
+            '7': 'key-7',
+            '8': 'key-8',
+            '9': 'key-9',
+            '0': 'key-0',
+            '-': 'minus',
+            '=': 'equal',
+            'Q': 'q',
+            'W': 'w',
+            'E': 'e',
+            'R': 'r',
+            'T': 't',
+            'Y': 'y',
+            'U': 'u',
+            'I': 'i',
+            'O': 'o',
+            'P': 'p',
+            '[': 'open-bracket',
+            ']': 'close-bracket',
+            'A': 'a',
+            'S': 's',
+            'D': 'd',
+            'F': 'f',
+            'G': 'g',
+            'H': 'h',
+            'J': 'j',
+            'K': 'k',
+            'L': 'l',
+            ';': 'semicolon',
+            "'": 'quote',
+            'Z': 'z',
+            'X': 'x',
+            'C': 'c',
+            'V': 'v',
+            'B': 'b',
+            'N': 'n',
+            'M': 'm',
+            ',': 'comma',
+            '.': 'dot',
+            '/': 'slash',
+            'SPACE': 'space',
+            'BACKSPACE': 'backspace'
+        };
+        
+        // Map keys to which hand is used (left or right)
+        this.keyHandMap = {
+            '`': 'left',
+            '1': 'left',
+            '2': 'left',
+            '3': 'left',
+            '4': 'left',
+            '5': 'left',
+            '6': 'right',
+            '7': 'right',
+            '8': 'right',
+            '9': 'right',
+            '0': 'right',
+            '-': 'right',
+            '=': 'right',
+            'Q': 'left',
+            'W': 'left',
+            'E': 'left',
+            'R': 'left',
+            'T': 'left',
+            'Y': 'right',
+            'U': 'right',
+            'I': 'right',
+            'O': 'right',
+            'P': 'right',
+            '[': 'right',
+            ']': 'right',
+            'A': 'left',
+            'S': 'left',
+            'D': 'left',
+            'F': 'left',
+            'G': 'left',
+            'H': 'right',
+            'J': 'right',
+            'K': 'right',
+            'L': 'right',
+            ';': 'right',
+            "'": 'right',
+            'Z': 'left',
+            'X': 'left',
+            'C': 'left',
+            'V': 'left',
+            'B': 'left',
+            'N': 'right',
+            'M': 'right',
+            ',': 'right',
+            '.': 'right',
+            '/': 'right',
+            'SPACE': 'right',
+            'BACKSPACE': 'right'
+        };
+        
         this.create();
+        
+        // Initialize SVG overlay if enabled
+        if (this.showHandOverlay) {
+            this.initializeSvgOverlay();
+        }
     }
     
     create() {
@@ -154,6 +273,11 @@ export class KeyboardDisplay {
                 repeat: -1
             });
         }
+        
+        // Show hands for this key if overlay is enabled
+        if (this.showHandOverlay) {
+            this.showHandsForKey(keyToHighlight);
+        }
     }
     
     resetAllKeys() {
@@ -230,7 +354,7 @@ export class KeyboardDisplay {
             ease: 'Quad.easeInOut',
             onComplete: () => {
                 // Keep the outline visible for a moment before resetting
-                this.scene.time.delayedCall(300, () => {
+                this.scene.time.delayedCall(50, () => {
                     // Clear the flashing flag before resetting
                     this.flashingKey = null;
                     
@@ -250,7 +374,92 @@ export class KeyboardDisplay {
         });
     }
     
+    // SVG Overlay Methods
+    initializeSvgOverlay() {
+        // This should be called after the scene has loaded the SVG
+        this.overlayEl = document.getElementById(this.overlayElementId);
+        if (!this.overlayEl) {
+            console.warn(`Overlay element with ID '${this.overlayElementId}' not found`);
+            return;
+        }
+
+        // Apply offset positioning if specified
+        if (this.overlayOffsetX !== 0 || this.overlayOffsetY !== 0) {
+            const currentTransform = this.overlayEl.style.transform || '';
+            const translateStr = `translate(${this.overlayOffsetX}px, ${this.overlayOffsetY}px)`;
+            this.overlayEl.style.transform = currentTransform ? `${currentTransform} ${translateStr}` : translateStr;
+        }
+
+        // Check if SVG text is cached
+        if (this.scene.cache.text.exists('keyboardSvgRaw')) {
+            const svgText = this.scene.cache.text.get('keyboardSvgRaw');
+            this.overlayEl.innerHTML = svgText;
+            this.overlaySvg = this.overlayEl.querySelector('svg');
+            
+            // Hide all paths initially
+            this.hideAllPaths();
+        } else {
+            console.warn('keyboardSvgRaw not found in cache. Make sure to load it in preload()');
+        }
+    }
+
+    showPath(pathId) {
+        if (!this.overlaySvg) return;
+        const el = this.overlaySvg.getElementById(pathId);
+        if (el) {
+            el.style.display = 'block';
+        }
+    }
+
+    hidePath(pathId) {
+        if (!this.overlaySvg) return;
+        const el = this.overlaySvg.getElementById(pathId);
+        if (el) {
+            el.style.display = 'none';
+        }
+    }
+
+    hideAllPaths() {
+        if (!this.overlaySvg) return;
+        const paths = this.overlaySvg.querySelectorAll('g');
+        paths.forEach(path => {
+            path.style.display = 'none';
+        });
+    }
+
+    showHandsForKey(key) {
+        if (!this.showHandOverlay || !this.overlaySvg) {
+            return;
+        }
+
+        // Hide all paths first
+        this.hideAllPaths();
+
+        // Get the path ID for this key
+        const pathId = this.keyToPathMap[key];
+        if (!pathId) return;
+
+        // Show the key path
+        this.showPath(pathId);
+
+        // Determine which hand is used and show the opposite hand in neutral position
+        const hand = this.keyHandMap[key];
+
+        if (hand === 'left') {
+            // Left hand key, show right hand in neutral
+            this.showPath('neutral-right');
+        } else if (hand === 'right') {
+            // Right hand key, show left hand in neutral
+            this.showPath('neutral-left');
+        }
+    }
+
     destroy() {
+        // Hide all SVG paths
+        if (this.showHandOverlay) {
+            this.hideAllPaths();
+        }
+
         // Clean up all key objects
         Object.values(this.keyObjects).forEach(keyObj => {
             keyObj.container.destroy();

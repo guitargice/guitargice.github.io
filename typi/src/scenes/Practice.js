@@ -73,49 +73,17 @@ export class Practice extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        // Create keyboard display
-        this.keyboard = new KeyboardDisplay(this, 250, 350);
+        // Create keyboard display with hand overlay enabled
+        this.keyboard = new KeyboardDisplay(this, 250, 350, { showHandOverlay: true });
 
         // Set up keyboard input for ALL keys (remove first to prevent duplicates)
         this.input.keyboard.off('keydown', this.handleKeyPress, this);
         this.input.keyboard.on('keydown', this.handleKeyPress, this);
-
-       // this.mountOverlaySvg();
         
         // Choose the first target key
         this.chooseNewTargetKey();
     }
 
-    
-    showFinger(finger) {
-        const el = this.overlaySvg.getElementById(finger);
-        if (el) el.style.display = 'block';
-    }
-
-    hideFinger(finger) {
-        const el = this.overlaySvg.getElementById(finger);
-        if (el) el.style.display = 'none';
-    }
-
-    // >>> Mount the SVG in the overlay div
-    mountOverlaySvg() {
-        this.overlayEl = document.getElementById('keyboard-overlay');
-        if (!this.overlayEl) return;
-
-        const svgText = this.cache.text.get('keyboardSvgRaw');
-        this.overlayEl.innerHTML = svgText;
-
-        // Grab the <svg> element we just inserted
-        this.overlaySvg = this.overlayEl.querySelector('svg');
-
-        // hide left-neutral path in the svg
-        const leftNeutral = this.overlaySvg.getElementById('neutral-left');
-        if (leftNeutral) leftNeutral.style.display = 'none';
-
-        // hide right-neutral path in the svg
-        const rightNeutral = this.overlaySvg.getElementById('neutral-right');
-        if (rightNeutral) rightNeutral.style.display = 'none';
-    }
 
     shutdown() {
         // Clean up keyboard listener when scene shuts down
@@ -203,6 +171,10 @@ export class Practice extends Phaser.Scene {
         yesBg.on('pointerover', () => yesBg.setFillStyle(0xff6659));
         yesBg.on('pointerout', () => yesBg.setFillStyle(0xF44336));
         yesBg.on('pointerdown', () => {
+            // Hide all SVG paths via keyboard display
+            if (this.keyboard) {
+                this.keyboard.hideAllPaths();
+            }
             this.scene.start('Home');
         });
 
@@ -244,10 +216,8 @@ export class Practice extends Phaser.Scene {
         // Update prompt text
         this.promptText.setText(`Press: ${this.targetKey}`);
 
-        // Highlight the target key on keyboard
+        // Highlight the target key on keyboard (hands will be shown automatically)
         this.keyboard.highlightKey(this.targetKey);
-
-      //  this.showFinger(this.targetKey.toLowerCase().replace(' ', ''));
     }
 
     handleKeyPress(event) {

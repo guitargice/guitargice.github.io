@@ -91,6 +91,9 @@ export class Sentences extends Phaser.Scene {
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
         this.load.audio('eraseSound', 'assets/sounds/erase.wav');
         this.load.audio('chaChingSound', 'assets/sounds/cha-ching.wav');
+        
+        // Load keyboard SVG for hand overlay
+        this.load.text('keyboardSvgRaw', 'assets/images/keyboard.svg');
     }
 
     create() {
@@ -132,8 +135,13 @@ export class Sentences extends Phaser.Scene {
         // Sentence container area
         this.sentenceContainer = this.add.container(640, 280);
 
-        // Create keyboard display at bottom
-        this.keyboard = new KeyboardDisplay(this, 180, 480);
+        // Create keyboard display at bottom with hand overlay enabled
+        // Offset the overlay down and to the left for better positioning with gauges
+        this.keyboard = new KeyboardDisplay(this, 180, 480, { 
+            showHandOverlay: true,
+            overlayOffsetX: -50,  // Move left
+            overlayOffsetY: 110     // Move down
+        });
 
         // Set up keyboard input
         this.input.keyboard.on('keydown', this.boundHandleKeyPress);

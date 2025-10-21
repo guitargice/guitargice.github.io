@@ -2,11 +2,11 @@
             <style type="text/css">
             
                 .st0{display:none;}
-                .st1{display:inline;opacity:0.33;fill:#E0E1E2;}
+                .st1{display:inline;opacity:0.2;fill:rgba(224, 224, 224, 0.55);}
                 .st2{display:inline;fill:none;stroke:#808285;stroke-width:2;stroke-miterlimit:10;}
                 .st3{display:inline;opacity:0.5;}
                 .st4{fill:#AEB0B2;}
-                .st5{display:inline;fill:none;stroke:#2969D0;stroke-width:3;stroke-linecap:round;stroke-miterlimit:10;}
+                .st5{display:inline;fill:none;stroke:#29D940;stroke-width:3;stroke-linecap:round;stroke-miterlimit:10;}
             
                 .theme-dark .st1 {fill: #CCCCCC ;}
                 .theme-dark .st5 {stroke: #b158b5 ;}
@@ -16,8 +16,8 @@
                 .theme-robot .st5 {stroke: #b238b7;}
                 .theme-robot .st2 {stroke: black;}
             
-                .theme-kingfish .st1 {fill: #b5bac3 ;}
-                .theme-kingfish .st5 {stroke: #2196f3 ;}
+                .theme-kingfish .st1 {fill:rgba(224, 224, 224, 0.55) ;}
+                .theme-kingfish .st5 {stroke:rgb(5, 245, 57) ;}
                 .theme-kingfish .st2 {stroke: #00060c ;}
                 
                 .kb-colorful .st1 {fill: #f9f8f4; opacity: 0.7;}
