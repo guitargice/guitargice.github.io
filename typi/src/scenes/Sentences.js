@@ -1,4 +1,6 @@
 import { KeyboardDisplay } from '../components/KeyboardDisplay.js';
+import { SpeedGauge } from '../components/SpeedGauge.js';
+import { AccuracyGauge } from '../components/AccuracyGauge.js';
 
 export class Sentences extends Phaser.Scene {
 
@@ -120,6 +122,12 @@ export class Sentences extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
+        // Create WPM speedometer gauge at top right
+        this.speedGauge = new SpeedGauge(this, 1050, 100);
+
+        // Create accuracy thermometer gauge
+        this.accuracyGauge = new AccuracyGauge(this, 1230, 100);
+
         // Sentence container area
         this.sentenceContainer = this.add.container(640, 280);
 
@@ -138,6 +146,33 @@ export class Sentences extends Phaser.Scene {
         if (this.timerRunning) {
             this.currentElapsedTime = (Date.now() - this.currentSentenceStartTime) / 1000;
             this.timerText.setText(`Time: ${this.currentElapsedTime.toFixed(1)}s`);
+        }
+
+        // Update speedometer with current WPM
+        let currentWPM = 0;
+        if (this.totalChars > 0) {
+            let totalTimeSeconds = this.totalElapsedTime;
+            if (this.timerRunning) {
+                totalTimeSeconds += this.currentElapsedTime;
+            }
+            
+            if (totalTimeSeconds > 0) {
+                const elapsedMinutes = totalTimeSeconds / 60;
+                const wordsTyped = this.totalChars / 5;
+                currentWPM = wordsTyped / elapsedMinutes;
+            }
+        }
+        if (this.speedGauge) {
+            this.speedGauge.update(currentWPM);
+        }
+
+        // Update accuracy gauge
+        let currentAccuracy = 100;
+        if (this.totalChars > 0) {
+            currentAccuracy = (this.correctCount / this.totalChars) * 100;
+        }
+        if (this.accuracyGauge) {
+            this.accuracyGauge.update(currentAccuracy);
         }
     }
 
