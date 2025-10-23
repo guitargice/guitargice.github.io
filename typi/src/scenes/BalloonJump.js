@@ -323,18 +323,49 @@ export class BalloonJump extends Phaser.Scene {
             ease: 'Sine.easeInOut'
         });
         
-        // Move player to next balloon with easing (starts from current position)
+        // Animate player with smooth jump curve
+        const startX = this.player.sprite.x;
+        const startY = this.player.sprite.y;
+        const endX = nextBalloon.x;
+        const endY = 200 - 80;
+        
+        // Calculate arc peak: midpoint horizontally, elevated above target
+        const midX = (startX + endX) / 2;
+        const arcHeight = 100; // Height above the target balloon
+        const peakY = Math.min(startY, endY) - arcHeight;
+        
+        // Horizontal movement (smooth linear)
         this.tweens.add({
             targets: this.player.sprite,
-            x: nextBalloon.x,
-            y: 200 - 80,
+            x: endX,
             duration: duration,
-            ease: 'Sine.easeInOut',
+            ease: 'Sine.easeInOut'
+        });
+        
+        // Vertical movement (parabolic arc)
+        // Split into two phases for smooth arc
+        const halfDuration = duration / 2;
+        
+        // Phase 1: Jump up to peak (decelerate as we rise)
+        this.tweens.add({
+            targets: this.player.sprite,
+            y: peakY,
+            duration: halfDuration,
+            ease: 'Quad.easeOut',
             onComplete: () => {
-                // Animation complete, allow update() to control player again
-                this.isJumping = false;
-                // Reset velocity when landing on new balloon
-                this.currentVelocity = 0;
+                // Phase 2: Fall down to target (accelerate as we fall)
+                this.tweens.add({
+                    targets: this.player.sprite,
+                    y: endY,
+                    duration: halfDuration,
+                    ease: 'Quad.easeIn',
+                    onComplete: () => {
+                        // Animation complete, allow update() to control player again
+                        this.isJumping = false;
+                        // Reset velocity when landing on new balloon
+                        this.currentVelocity = 0;
+                    }
+                });
             }
         });
         
