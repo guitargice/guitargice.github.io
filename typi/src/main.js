@@ -1,6 +1,7 @@
 import { Home } from './scenes/Home.js';
 import { Practice } from './scenes/Practice.js';
 import { Sentences } from './scenes/Sentences.js';
+import { BalloonJump } from './scenes/BalloonJump.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -19,7 +20,8 @@ const config = {
     scene: [
         Home,
         Practice,
-        Sentences
+        Sentences,
+        BalloonJump
     ],
     scale: {
         mode: Phaser.Scale.FIT,
