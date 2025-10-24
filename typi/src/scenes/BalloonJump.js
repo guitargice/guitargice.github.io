@@ -44,7 +44,7 @@ export class BalloonJump extends Phaser.Scene {
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
         this.load.audio('chaChingSound', 'assets/sounds/cha-ching.wav');
         this.load.audio('popSound', 'assets/sounds/pop.wav');
-        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.ogg');
+        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.mp3');
     }
     
     create() {

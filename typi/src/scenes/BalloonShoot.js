@@ -35,7 +35,7 @@ export class BalloonShoot extends Phaser.Scene {
         // Load sounds
         this.load.audio('popSound', 'assets/sounds/pop.wav');
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
-        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.ogg');
+        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.mp3');
     }
     
     create() {
