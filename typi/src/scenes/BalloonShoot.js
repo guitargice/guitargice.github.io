@@ -8,7 +8,7 @@ export class BalloonShoot extends Phaser.Scene {
         this.highScore = 0;
         this.gameOver = false;
         this.spawnDelay = 2500; // Initial spawn delay (1 second)
-        this.minSpawnDelay = 500; // Minimum spawn delay
+        this.minSpawnDelay = 750; // Minimum spawn delay
         this.spawnDecrement = 12.5; // Reduce by 0.05 seconds (50ms) per balloon
         
         // Bind keyboard handler
@@ -337,14 +337,8 @@ export class BalloonShoot extends Phaser.Scene {
             this.score++;
             this.scoreText.setText(`Score: ${this.score}`);
             
-            // Speed up spawning
+            // Speed up spawning (affects next scheduled spawn)
             this.updateSpawnDelay();
-            
-            // Spawn a new balloon immediately
-            this.spawnBalloon();
-            
-            // Reset spawn timer with current delay
-            this.startSpawnTimer();
         } else {
             // Wrong key - no balloon with this letter
             this.sound.play('whoopsieSound');
