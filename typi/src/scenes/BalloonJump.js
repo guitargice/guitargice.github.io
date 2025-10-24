@@ -44,6 +44,7 @@ export class BalloonJump extends Phaser.Scene {
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
         this.load.audio('chaChingSound', 'assets/sounds/cha-ching.wav');
         this.load.audio('popSound', 'assets/sounds/pop.wav');
+        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.ogg');
     }
     
     create() {
@@ -52,6 +53,12 @@ export class BalloonJump extends Phaser.Scene {
         
         // Background color
         this.cameras.main.setBackgroundColor('#87CEEB'); // Sky blue
+        
+        // Start background music (only if not already playing)
+        if (!this.sound.get('bgMusic') || !this.sound.get('bgMusic').isPlaying) {
+            this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 0.5 });
+            this.bgMusic.play();
+        }
         
         // Back button
         this.createBackButton();
@@ -109,6 +116,11 @@ export class BalloonJump extends Phaser.Scene {
             // Clean up keyboard listener before leaving (safe to call)
             if (this.input && this.input.keyboard) {
                 this.input.keyboard.off('keydown', this.boundHandleKeyPress);
+            }
+            // Stop background music
+            const music = this.sound.get('bgMusic');
+            if (music) {
+                music.stop();
             }
             this.scene.start('Home');
         });

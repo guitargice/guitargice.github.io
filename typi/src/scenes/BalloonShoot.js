@@ -35,11 +35,18 @@ export class BalloonShoot extends Phaser.Scene {
         // Load sounds
         this.load.audio('popSound', 'assets/sounds/pop.wav');
         this.load.audio('whoopsieSound', 'assets/sounds/whoopsie.wav');
+        this.load.audio('bgMusic', 'assets/sounds/SugarSwing.ogg');
     }
     
     create() {
         // Background color
         this.cameras.main.setBackgroundColor('#87CEEB'); // Sky blue
+        
+        // Start background music (only if not already playing)
+        if (!this.sound.get('bgMusic') || !this.sound.get('bgMusic').isPlaying) {
+            this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 0.5 });
+            this.bgMusic.play();
+        }
         
         // Load high score from localStorage
         this.highScore = parseInt(localStorage.getItem('balloonShootHighScore')) || 0;
@@ -95,8 +102,8 @@ export class BalloonShoot extends Phaser.Scene {
         for (let i = 0; i < 5; i++) {
             const x = Phaser.Math.Between(0, 1280);
             const y = Phaser.Math.Between(50, 600);
-            const scale = Phaser.Math.FloatBetween(0.4, 0.8);
-            const opacity = Phaser.Math.FloatBetween(0.5, 0.7);
+            const scale = Phaser.Math.FloatBetween(0.5, 1.0);
+            const opacity = Phaser.Math.FloatBetween(0.4, 0.7);
             const speed = Phaser.Math.FloatBetween(10, 30); // pixels per second
             const direction = Phaser.Math.Between(0, 1) === 0 ? -1 : 1; // -1 = left, 1 = right
             
@@ -132,6 +139,11 @@ export class BalloonShoot extends Phaser.Scene {
             // Clean up keyboard listener before leaving
             if (this.input && this.input.keyboard) {
                 this.input.keyboard.off('keydown', this.boundHandleKeyPress);
+            }
+            // Stop background music
+            const music = this.sound.get('bgMusic');
+            if (music) {
+                music.stop();
             }
             this.scene.start('Home');
         });
