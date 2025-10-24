@@ -190,7 +190,24 @@ export class BalloonJump extends Phaser.Scene {
     }
     
     update(time, delta) {
-        if (this.gameOver) return;
+        if (this.gameOver) {
+            // Clean up floating balloons that are off screen every frame during game over
+            if (this.floatingBalloons && this.floatingBalloons.length > 0) {
+                for (let i = this.floatingBalloons.length - 1; i >= 0; i--) {
+                    const balloon = this.floatingBalloons[i];
+                    // Check if balloon is above the screen (y property, NOT currentY)
+                    if (balloon && balloon.y < -200) {
+                        balloon.destroy();
+                        this.floatingBalloons.splice(i, 1);
+                    }
+                }
+                // Update count
+                if (this.balloonCountText) {
+                    this.balloonCountText.setText(`Balloons: ${this.floatingBalloons.length}`);
+                }
+            }
+            return;
+        }
         
         // Get current balloon
         const currentBalloon = this.balloons[this.currentBalloonIndex];
@@ -231,7 +248,6 @@ export class BalloonJump extends Phaser.Scene {
         
         if (pressedKey === nextBalloon.key) {
             // Correct key!
-            this.sound.play('chaChingSound');
             this.sound.play('popSound');
             
             // Get the current balloon (the one we're jumping FROM)
@@ -385,7 +401,7 @@ export class BalloonJump extends Phaser.Scene {
         }
     }
     
-    createBalloonPop(x, y, numStars = 10) {
+    createBalloonPop(x, y, numStars = 20) {
         const colors = [0xffff00, 0xff00ff, 0x00ffff, 0xff8800, 0x88ff00, 0xff0088];
         
         // Create "POP!" text in random color
@@ -415,15 +431,15 @@ export class BalloonJump extends Phaser.Scene {
         // Create star particles
         for (let i = 0; i < numStars; i++) {
             const angle = (i / numStars) * Math.PI * 2 + Phaser.Math.FloatBetween(-0.3, 0.3);
-            const distance = Phaser.Math.Between(40, 80);
+            const distance = Phaser.Math.Between(40, 160);
             
             // Create star particle
             const star = this.add.star(
                 x,
                 y,
                 5,                              // points
-                8,                              // inner radius
-                16,                             // outer radius
+                16,                              // inner radius
+                32,                             // outer radius
                 colors[i % colors.length]
             );
             star.setDepth(10); // Above everything else
@@ -437,13 +453,94 @@ export class BalloonJump extends Phaser.Scene {
                 angle: Phaser.Math.Between(-360, 360),
                 scaleX: 0.2,
                 scaleY: 0.2,
-                duration: 500,
+                duration: 750,
                 ease: 'Cubic.easeOut',
                 onComplete: () => {
                     star.destroy();
                 }
             });
         }
+    }
+    
+    startFloatingBalloons() {
+        // Track floating balloons
+        this.floatingBalloons = [];
+
+        // Continuously create balloons every 600ms
+        this.floatingBalloonsTimer = this.time.addEvent({
+            delay: 600,
+            callback: () => {
+                // Remove balloons that are off screen (above the top)
+                // Use reverse loop with splice for proper deletion
+                for (let i = this.floatingBalloons.length - 1; i >= 0; i--) {
+                    const balloon = this.floatingBalloons[i];
+                    // Floating balloons use .y property (Image objects), NOT currentY
+                    if (balloon && balloon.y < -200) {
+                        balloon.destroy();
+                        this.floatingBalloons.splice(i, 1);
+                    }
+                }
+ 
+                // Always create new balloon if below max (100)
+                if (this.floatingBalloons.length < 100) {
+                    this.createFloatingBalloon();
+                }
+            },
+            loop: true
+        });
+    }
+    
+    createFloatingBalloon() {
+        // Random x position
+        const x = Phaser.Math.Between(100, 1180);
+        const startY = 900; // Start below screen
+        
+        // Create balloon with varying size
+        const balloon = this.add.image(x, startY, 'balloon');
+        // Base scale 0.22, with +/- 20% variation (0.176 to 0.264)
+        const scale = Phaser.Math.FloatBetween(0.176, 0.264);
+        balloon.setScale(scale);
+        balloon.setScrollFactor(0);
+        balloon.setDepth(50); // Behind the modal
+        
+        // Random color
+        const hue = Phaser.Math.Between(0, 360);
+        balloon.setTint(this.hslToColor(hue, 0.7, 0.6));
+        
+        this.floatingBalloons.push(balloon);
+        
+        // Float up animation - go to -250 to ensure it gets past the cleanup threshold
+        const duration = Phaser.Math.Between(8000, 12000);
+        this.tweens.add({
+            targets: balloon,
+            y: -250,
+            duration: duration,
+            ease: 'Linear'
+        });
+        
+        // Gentle rotation animation
+        const rotationAmount = Phaser.Math.FloatBetween(-15, 15);
+        const rotationDuration = Phaser.Math.Between(2000, 4000);
+        this.tweens.add({
+            targets: balloon,
+            angle: rotationAmount,
+            duration: rotationDuration,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        // Gentle horizontal sway
+        const swayAmount = Phaser.Math.Between(-30, 30);
+        const swayDuration = Phaser.Math.Between(3000, 5000);
+        this.tweens.add({
+            targets: balloon,
+            x: x + swayAmount,
+            duration: swayDuration,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
     }
     
     handleGameOver() {
@@ -457,40 +554,84 @@ export class BalloonJump extends Phaser.Scene {
         // Play game over sound
         this.sound.play('whoopsieSound');
         
-        // Show game over screen
-        const gameOverBg = this.add.rectangle(640, 360, 600, 400, 0x000000, 0.8);
+        // Show game over screen with rounded corners
+        const gameOverBg = this.add.graphics();
+        gameOverBg.fillStyle(0x000000, 0.8);
+        gameOverBg.fillRoundedRect(340, 160, 600, 400, 20);
         gameOverBg.setScrollFactor(0);
+        gameOverBg.setDepth(100);
         
         const gameOverText = this.add.text(640, 280, 'Game Over!', {
             fontSize: '64px',
             fontFamily: 'Arial',
             color: '#FF6B6B',
             fontStyle: 'bold'
-        }).setOrigin(0.5).setScrollFactor(0);
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
         
         const finalScoreText = this.add.text(640, 360, `Final Score: ${this.score}`, {
             fontSize: '32px',
             fontFamily: 'Arial',
             color: '#ffffff',
             fontStyle: 'bold'
-        }).setOrigin(0.5).setScrollFactor(0);
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
         
-        // Restart button
-        const restartButton = this.add.container(640, 450).setScrollFactor(0);
-        const restartBg = this.add.rectangle(0, 0, 200, 50, 0x4CAF50);
-        restartBg.setStrokeStyle(2, 0x6fd36f);
+        // Start floating balloons animation
+        this.startFloatingBalloons();
+        
+        // Restart button with rounded corners
+        const restartButton = this.add.container(640, 450).setScrollFactor(0).setDepth(1000);
+        const restartBg = this.add.graphics();
+        restartBg.fillStyle(0x4CAF50);
+        restartBg.fillRoundedRect(-100, -25, 200, 50, 10);
+        restartBg.lineStyle(2, 0x6fd36f);
+        restartBg.strokeRoundedRect(-100, -25, 200, 50, 10);
+        
+        // Create invisible interactive rectangle overlay
+        const restartHitArea = this.add.rectangle(0, 0, 200, 50, 0xffffff, 0);
+        restartHitArea.setInteractive({ useHandCursor: true });
+        
         const restartText = this.add.text(0, 0, 'Try Again', {
             fontSize: '24px',
             fontFamily: 'Arial',
             color: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        restartButton.add([restartBg, restartText]);
         
-        restartBg.setInteractive({ useHandCursor: true });
-        restartBg.on('pointerover', () => restartBg.setFillStyle(0x6fd36f));
-        restartBg.on('pointerout', () => restartBg.setFillStyle(0x4CAF50));
-        restartBg.on('pointerdown', () => {
+        restartButton.add([restartBg, restartHitArea, restartText]);
+        
+        // Make button interactive
+        restartHitArea.on('pointerover', () => {
+            restartBg.clear();
+            restartBg.fillStyle(0x6fd36f);
+            restartBg.fillRoundedRect(-100, -25, 200, 50, 10);
+            restartBg.lineStyle(2, 0x6fd36f);
+            restartBg.strokeRoundedRect(-100, -25, 200, 50, 10);
+        });
+        restartHitArea.on('pointerout', () => {
+            restartBg.clear();
+            restartBg.fillStyle(0x4CAF50);
+            restartBg.fillRoundedRect(-100, -25, 200, 50, 10);
+            restartBg.lineStyle(2, 0x6fd36f);
+            restartBg.strokeRoundedRect(-100, -25, 200, 50, 10);
+        });
+        restartHitArea.on('pointerdown', () => {
+            // Stop floating balloons timer
+            if (this.floatingBalloonsTimer) {
+                this.floatingBalloonsTimer.remove();
+            }
+            // Clean up all floating balloons
+            if (this.floatingBalloons) {
+                this.floatingBalloons.forEach(balloon => {
+                    if (balloon && balloon.active) {
+                        balloon.destroy();
+                    }
+                });
+                this.floatingBalloons = [];
+            }
+            // Clean up debug text
+            if (this.balloonCountText) {
+                this.balloonCountText.destroy();
+            }
             // Restart the scene (will call init and create again)
             this.scene.restart();
         });

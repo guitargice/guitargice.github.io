@@ -7,7 +7,8 @@ export class Home extends Phaser.Scene {
         this.activities = [
             { key: 'Practice', name: 'Practice', scene: 'Practice' },
             { key: 'Sentences', name: 'Sentences', scene: 'Sentences' },
-            { key: 'BalloonJump', name: 'Balloon Jump', scene: 'BalloonJump' }
+            { key: 'BalloonJump', name: 'Balloon Jump', scene: 'BalloonJump' },
+            { key: 'BalloonShoot', name: 'Balloon Shoot', scene: 'BalloonShoot' }
         ];
     }
 
