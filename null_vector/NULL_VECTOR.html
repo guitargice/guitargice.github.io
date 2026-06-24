@@ -44,9 +44,40 @@
             return touchCapable && (coarsePointer || noHover || mobileUa);
         }
 
+        function canvasCoordsFromTouch(canvas, touch) {
+            var rect = canvas.getBoundingClientRect();
+            var scaleX = rect.width > 0.0 ? canvas.width / rect.width : 1.0;
+            var scaleY = rect.height > 0.0 ? canvas.height / rect.height : 1.0;
+            return {
+                x: (touch.clientX - rect.left) * scaleX,
+                y: (touch.clientY - rect.top) * scaleY
+            };
+        }
+
+        function installTouchTracking(canvas) {
+            Module.activeTouches = [];
+
+            function syncTouches(event) {
+                event.preventDefault();
+                var list = [];
+                for (var i = 0; i < event.touches.length; ++i) {
+                    var touch = event.touches[i];
+                    var coords = canvasCoordsFromTouch(canvas, touch);
+                    list.push({ id: touch.identifier, x: coords.x, y: coords.y });
+                }
+                Module.activeTouches = list;
+            }
+
+            canvas.addEventListener('touchstart', syncTouches, { passive: false, capture: true });
+            canvas.addEventListener('touchmove', syncTouches, { passive: false, capture: true });
+            canvas.addEventListener('touchend', syncTouches, { passive: false, capture: true });
+            canvas.addEventListener('touchcancel', syncTouches, { passive: false, capture: true });
+        }
+
         var statusElement = document.getElementById('status');
         var Module = {
             isMobileWeb: detectMobileWeb(),
+            activeTouches: [],
             canvas: (function() {
                 var canvas = document.getElementById('canvas');
                 canvas.width = 1920;
@@ -58,6 +89,7 @@
                 canvas.addEventListener('mousedown', function() {
                     canvas.focus();
                 }, false);
+                installTouchTracking(canvas);
                 return canvas;
             })(),
             printErr: function(text) {
