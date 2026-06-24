@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NULL VECTOR</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #02040a;
+            overflow: hidden;
+        }
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            outline: none;
+        }
+        #status {
+            position: fixed;
+            left: 12px;
+            bottom: 12px;
+            color: #6a8aaa;
+            font: 12px/1.4 monospace;
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" tabindex="0" width="1920" height="1080"></canvas>
+    <div id="status">Loading…</div>
+    <script type="text/javascript">
+        var statusElement = document.getElementById('status');
+        var Module = {
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+                canvas.width = 1920;
+                canvas.height = 1080;
+                canvas.addEventListener('webglcontextlost', function(e) {
+                    e.preventDefault();
+                    statusElement.textContent = 'WebGL/WebGPU context lost.';
+                }, false);
+                canvas.addEventListener('mousedown', function() {
+                    canvas.focus();
+                }, false);
+                return canvas;
+            })(),
+            printErr: function(text) {
+                console.error(text);
+                if (statusElement && text) {
+                    var line = String(text).trim();
+                    if (line.indexOf('WebGPU') >= 0 || line.indexOf('browser:') >= 0 || line.indexOf('bgfx renderer') >= 0) {
+                        statusElement.textContent = line.slice(0, 160);
+                    }
+                }
+            },
+            setStatus: function(text) {
+                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+                if (text === Module.setStatus.last.text) return;
+                Module.setStatus.last = { time: Date.now(), text: text };
+                if (text) {
+                    statusElement.textContent = text;
+                } else {
+                    statusElement.textContent = '';
+                }
+            },
+            onRuntimeInitialized: function() {
+                Module.setStatus('');
+                var canvas = Module.canvas;
+                if (canvas) {
+                    canvas.width = 1920;
+                    canvas.height = 1080;
+                    canvas.focus();
+                }
+            }
+        };
+    </script>
+    <script async type="text/javascript" src="NULL_VECTOR.js"></script>
+</body>
+</html>
