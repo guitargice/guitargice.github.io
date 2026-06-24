@@ -36,6 +36,10 @@
     <canvas id="canvas" tabindex="0" width="1920" height="1080"></canvas>
     <div id="status">Loading…</div>
     <script type="text/javascript">
+        var LOGICAL_WIDTH = 1920;
+        var LOGICAL_HEIGHT = 1080;
+        var THRUST_RADIUS = LOGICAL_WIDTH / 12.0;
+
         function detectMobileWeb() {
             var touchCapable = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             var coarsePointer = window.matchMedia('(pointer: coarse)').matches;
@@ -44,13 +48,54 @@
             return touchCapable && (coarsePointer || noHover || mobileUa);
         }
 
+        function thrustButtonCenters() {
+            return {
+                leftCx: THRUST_RADIUS,
+                rightCx: LOGICAL_WIDTH - THRUST_RADIUS,
+                cy: LOGICAL_HEIGHT - THRUST_RADIUS,
+                radius: THRUST_RADIUS
+            };
+        }
+
+        function isThrustLogicalPoint(lx, ly) {
+            var buttons = thrustButtonCenters();
+            var radiusSq = buttons.radius * buttons.radius;
+            function inCircle(cx, cy) {
+                var dx = lx - cx;
+                var dy = ly - cy;
+                return (dx * dx + dy * dy) <= radiusSq;
+            }
+            return inCircle(buttons.leftCx, buttons.cy) || inCircle(buttons.rightCx, buttons.cy);
+        }
+
         function canvasCoordsFromTouch(canvas, touch) {
             var rect = canvas.getBoundingClientRect();
-            var scaleX = rect.width > 0.0 ? canvas.width / rect.width : 1.0;
-            var scaleY = rect.height > 0.0 ? canvas.height / rect.height : 1.0;
+            var canvasAspect = canvas.width / canvas.height;
+            var rectAspect = rect.width / rect.height;
+            var contentW = 0.0;
+            var contentH = 0.0;
+            var offsetX = 0.0;
+            var offsetY = 0.0;
+
+            if (rectAspect > canvasAspect) {
+                contentH = rect.height;
+                contentW = contentH * canvasAspect;
+                offsetX = (rect.width - contentW) * 0.5;
+            } else {
+                contentW = rect.width;
+                contentH = contentW / canvasAspect;
+                offsetY = (rect.height - contentH) * 0.5;
+            }
+
+            var localX = touch.clientX - rect.left - offsetX;
+            var localY = touch.clientY - rect.top - offsetY;
+            if (localX < 0.0 || localY < 0.0 || localX > contentW || localY > contentH) {
+                return null;
+            }
+
             return {
-                x: (touch.clientX - rect.left) * scaleX,
-                y: (touch.clientY - rect.top) * scaleY
+                x: (localX / contentW) * canvas.width,
+                y: (localY / contentH) * canvas.height
             };
         }
 
@@ -59,20 +104,64 @@
                 return;
             }
 
-            function syncTouches(event) {
-                event.preventDefault();
+            var touchMap = Object.create(null);
+
+            function rebuildActiveTouches() {
                 touchBucket.length = 0;
-                for (var i = 0; i < event.touches.length; ++i) {
-                    var touch = event.touches[i];
-                    var coords = canvasCoordsFromTouch(canvas, touch);
-                    touchBucket.push({ id: touch.identifier, x: coords.x, y: coords.y });
+                for (var id in touchMap) {
+                    if (!Object.prototype.hasOwnProperty.call(touchMap, id)) {
+                        continue;
+                    }
+                    var entry = touchMap[id];
+                    touchBucket.push({
+                        id: entry.id,
+                        x: entry.x,
+                        y: entry.y,
+                        isThrust: entry.isThrust
+                    });
                 }
             }
 
-            canvas.addEventListener('touchstart', syncTouches, false);
-            canvas.addEventListener('touchmove', syncTouches, false);
-            canvas.addEventListener('touchend', syncTouches, false);
-            canvas.addEventListener('touchcancel', syncTouches, false);
+            function updateTouchEntries(event) {
+                event.preventDefault();
+                var i;
+                var touch;
+                var coords;
+
+                if (event.type === 'touchstart' || event.type === 'touchmove') {
+                    for (i = 0; i < event.changedTouches.length; ++i) {
+                        touch = event.changedTouches[i];
+                        coords = canvasCoordsFromTouch(canvas, touch);
+                        if (!coords) {
+                            continue;
+                        }
+                        if (event.type === 'touchstart' || !touchMap[touch.identifier]) {
+                            touchMap[touch.identifier] = {
+                                id: touch.identifier,
+                                x: coords.x,
+                                y: coords.y,
+                                isThrust: isThrustLogicalPoint(coords.x, coords.y)
+                            };
+                        } else {
+                            touchMap[touch.identifier].x = coords.x;
+                            touchMap[touch.identifier].y = coords.y;
+                        }
+                    }
+                } else {
+                    for (i = 0; i < event.changedTouches.length; ++i) {
+                        touch = event.changedTouches[i];
+                        delete touchMap[touch.identifier];
+                    }
+                }
+
+                rebuildActiveTouches();
+            }
+
+            var touchOptions = { passive: false, capture: true };
+            canvas.addEventListener('touchstart', updateTouchEntries, touchOptions);
+            canvas.addEventListener('touchmove', updateTouchEntries, touchOptions);
+            canvas.addEventListener('touchend', updateTouchEntries, touchOptions);
+            canvas.addEventListener('touchcancel', updateTouchEntries, touchOptions);
         }
 
         var activeTouches = [];
@@ -106,16 +195,16 @@
                 Module.setStatus('');
                 var canvas = Module.canvas;
                 if (canvas) {
-                    canvas.width = 1920;
-                    canvas.height = 1080;
+                    canvas.width = LOGICAL_WIDTH;
+                    canvas.height = LOGICAL_HEIGHT;
                     canvas.focus();
                 }
             }
         };
 
         if (gameCanvas) {
-            gameCanvas.width = 1920;
-            gameCanvas.height = 1080;
+            gameCanvas.width = LOGICAL_WIDTH;
+            gameCanvas.height = LOGICAL_HEIGHT;
             gameCanvas.addEventListener('webglcontextlost', function(e) {
                 e.preventDefault();
                 statusElement.textContent = 'WebGL/WebGPU context lost.';
@@ -131,4 +220,3 @@
     <script async type="text/javascript" src="NULL_VECTOR.js"></script>
 </body>
 </html>
-
