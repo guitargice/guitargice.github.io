@@ -36,8 +36,17 @@
     <canvas id="canvas" tabindex="0" width="1920" height="1080"></canvas>
     <div id="status">Loading…</div>
     <script type="text/javascript">
+        function detectMobileWeb() {
+            var touchCapable = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            var coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+            var noHover = window.matchMedia('(hover: none)').matches;
+            var mobileUa = /Android|webOS|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(navigator.userAgent || '');
+            return touchCapable && (coarsePointer || noHover || mobileUa);
+        }
+
         var statusElement = document.getElementById('status');
         var Module = {
+            isMobileWeb: detectMobileWeb(),
             canvas: (function() {
                 var canvas = document.getElementById('canvas');
                 canvas.width = 1920;
