@@ -54,18 +54,15 @@
             };
         }
 
-        function installTouchTracking(canvas) {
-            Module.activeTouches = [];
-
+        function installTouchTracking(canvas, touchBucket) {
             function syncTouches(event) {
                 event.preventDefault();
-                var list = [];
+                touchBucket.length = 0;
                 for (var i = 0; i < event.touches.length; ++i) {
                     var touch = event.touches[i];
                     var coords = canvasCoordsFromTouch(canvas, touch);
-                    list.push({ id: touch.identifier, x: coords.x, y: coords.y });
+                    touchBucket.push({ id: touch.identifier, x: coords.x, y: coords.y });
                 }
-                Module.activeTouches = list;
             }
 
             canvas.addEventListener('touchstart', syncTouches, { passive: false, capture: true });
@@ -74,10 +71,11 @@
             canvas.addEventListener('touchcancel', syncTouches, { passive: false, capture: true });
         }
 
+        var activeTouches = [];
         var statusElement = document.getElementById('status');
         var Module = {
             isMobileWeb: detectMobileWeb(),
-            activeTouches: [],
+            activeTouches: activeTouches,
             canvas: (function() {
                 var canvas = document.getElementById('canvas');
                 canvas.width = 1920;
@@ -89,7 +87,7 @@
                 canvas.addEventListener('mousedown', function() {
                     canvas.focus();
                 }, false);
-                installTouchTracking(canvas);
+                installTouchTracking(canvas, activeTouches);
                 return canvas;
             })(),
             printErr: function(text) {
