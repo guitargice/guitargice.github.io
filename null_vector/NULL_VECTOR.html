@@ -55,6 +55,10 @@
         }
 
         function installTouchTracking(canvas, touchBucket) {
+            if (!canvas || !touchBucket) {
+                return;
+            }
+
             function syncTouches(event) {
                 event.preventDefault();
                 touchBucket.length = 0;
@@ -65,31 +69,20 @@
                 }
             }
 
-            canvas.addEventListener('touchstart', syncTouches, { passive: false, capture: true });
-            canvas.addEventListener('touchmove', syncTouches, { passive: false, capture: true });
-            canvas.addEventListener('touchend', syncTouches, { passive: false, capture: true });
-            canvas.addEventListener('touchcancel', syncTouches, { passive: false, capture: true });
+            canvas.addEventListener('touchstart', syncTouches, false);
+            canvas.addEventListener('touchmove', syncTouches, false);
+            canvas.addEventListener('touchend', syncTouches, false);
+            canvas.addEventListener('touchcancel', syncTouches, false);
         }
 
         var activeTouches = [];
         var statusElement = document.getElementById('status');
+        var gameCanvas = document.getElementById('canvas');
+
         var Module = {
             isMobileWeb: detectMobileWeb(),
             activeTouches: activeTouches,
-            canvas: (function() {
-                var canvas = document.getElementById('canvas');
-                canvas.width = 1920;
-                canvas.height = 1080;
-                canvas.addEventListener('webglcontextlost', function(e) {
-                    e.preventDefault();
-                    statusElement.textContent = 'WebGL/WebGPU context lost.';
-                }, false);
-                canvas.addEventListener('mousedown', function() {
-                    canvas.focus();
-                }, false);
-                installTouchTracking(canvas, activeTouches);
-                return canvas;
-            })(),
+            canvas: gameCanvas,
             printErr: function(text) {
                 console.error(text);
                 if (statusElement && text) {
@@ -119,7 +112,23 @@
                 }
             }
         };
+
+        if (gameCanvas) {
+            gameCanvas.width = 1920;
+            gameCanvas.height = 1080;
+            gameCanvas.addEventListener('webglcontextlost', function(e) {
+                e.preventDefault();
+                statusElement.textContent = 'WebGL/WebGPU context lost.';
+            }, false);
+            gameCanvas.addEventListener('mousedown', function() {
+                gameCanvas.focus();
+            }, false);
+            installTouchTracking(gameCanvas, activeTouches);
+        } else {
+            console.error('NULL VECTOR: #canvas element not found.');
+        }
     </script>
     <script async type="text/javascript" src="NULL_VECTOR.js"></script>
 </body>
 </html>
+
