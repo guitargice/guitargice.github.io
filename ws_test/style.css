@@ -1,0 +1,117 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #0f111a;
+  color: #eef2ff;
+}
+
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+
+.lead {
+  margin: 0 0 20px;
+  color: #b8c0dc;
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+label {
+  font-size: 0.9rem;
+  color: #b8c0dc;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+input[type="text"] {
+  flex: 1 1 320px;
+  min-width: 240px;
+  padding: 10px 12px;
+  border: 1px solid #39405a;
+  border-radius: 8px;
+  background: #171b29;
+  color: #eef2ff;
+}
+
+button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #4c6ef5;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #5c7cfa;
+}
+
+#status {
+  min-height: 1.2em;
+  font-size: 0.95rem;
+}
+
+#status[data-kind="ok"] {
+  color: #69db7c;
+}
+
+#status[data-kind="error"] {
+  color: #ff8787;
+}
+
+#status[data-kind="pending"] {
+  color: #ffd43b;
+}
+
+#game-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+#game {
+  display: block;
+  border: 1px solid #39405a;
+  border-radius: 8px;
+  background: #1a1a2e;
+  image-rendering: pixelated;
+}
+
+#player-list {
+  white-space: pre-wrap;
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #171b29;
+  border: 1px solid #39405a;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9rem;
+  color: #ced4da;
+}
+
+.hint {
+  margin-top: 12px;
+  color: #868e96;
+  font-size: 0.85rem;
+}

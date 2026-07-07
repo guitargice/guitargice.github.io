@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gm-network-core</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>gm-network-core</h1>
+    <p class="lead">Web client for the multiplayer prototype. Connects over WebSocket and renders the same player boxes as the native client.</p>
+
+    <div class="panel">
+      <label for="server-url">WebSocket server</label>
+      <div class="row">
+        <input id="server-url" type="text" placeholder="wss://your-server.example.com">
+        <button id="connect-btn" type="button">Connect</button>
+      </div>
+      <div id="status">Enter a server URL and click Connect.</div>
+    </div>
+
+    <div id="game-wrap">
+      <canvas id="game" width="960" height="540" aria-label="Game canvas"></canvas>
+    </div>
+
+    <pre id="player-list">No players yet</pre>
+
+    <p class="hint">
+      Run the native server with <code>--server --port 1234 --ws-port 8081</code>, tunnel WebSocket through Playit, then connect here.
+      You can also pass <code>?server=wss://your-host</code> in the page URL.
+    </p>
+  </main>
+
+  <script type="module" src="client.js"></script>
+</body>
+</html>
