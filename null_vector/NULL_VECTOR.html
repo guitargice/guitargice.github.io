@@ -57,7 +57,9 @@
             };
         }
 
-        function isThrustLogicalPoint(lx, ly) {
+        // Zone assigned when the touch starts and kept for its lifetime:
+        // 0 = free area, 1 = left stick (move), 2 = right stick (rotate + fire).
+        function touchZoneForPoint(lx, ly) {
             var buttons = thrustButtonCenters();
             var radiusSq = buttons.radius * buttons.radius;
             function inCircle(cx, cy) {
@@ -65,7 +67,9 @@
                 var dy = ly - cy;
                 return (dx * dx + dy * dy) <= radiusSq;
             }
-            return inCircle(buttons.leftCx, buttons.cy) || inCircle(buttons.rightCx, buttons.cy);
+            if (inCircle(buttons.leftCx, buttons.cy)) return 1;
+            if (inCircle(buttons.rightCx, buttons.cy)) return 2;
+            return 0;
         }
 
         function canvasCoordsFromTouch(canvas, touch) {
@@ -117,7 +121,7 @@
                         id: entry.id,
                         x: entry.x,
                         y: entry.y,
-                        isThrust: entry.isThrust
+                        zone: entry.zone
                     });
                 }
             }
@@ -140,7 +144,7 @@
                                 id: touch.identifier,
                                 x: coords.x,
                                 y: coords.y,
-                                isThrust: isThrustLogicalPoint(coords.x, coords.y)
+                                zone: touchZoneForPoint(coords.x, coords.y)
                             };
                         } else {
                             touchMap[touch.identifier].x = coords.x;

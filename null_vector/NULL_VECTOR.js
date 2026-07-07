@@ -9858,8 +9858,8 @@ var ASM_CONSTS = {
  13339885: ($0) => { var device = window.miniaudio.get_device_by_index($0); device.webaudio.resume(); device.state = window.miniaudio.device_state.started; },  
  13340024: ($0) => { var device = window.miniaudio.get_device_by_index($0); device.webaudio.suspend(); device.state = window.miniaudio.device_state.stopped; },  
  13340164: () => { if (typeof Module !== 'undefined' && typeof Module.isMobileWeb === 'boolean') { return Module.isMobileWeb ? 1 : 0; } var touchCapable = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0); var coarsePointer = window.matchMedia('(pointer: coarse)').matches; var noHover = window.matchMedia('(hover: none)').matches; var ua = navigator.userAgent; var mobileUa = ua ? /Android|webOS|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua) : false; return (touchCapable && (coarsePointer || noHover || mobileUa)) ? 1 : 0; },  
- 13340694: ($0, $1, $2, $3) => { var touches = (typeof Module !== 'undefined' && Module.activeTouches) ? Module.activeTouches : []; var count = Math.min(touches.length, $3); for (var i = 0; i < count; ++i) { var touch = touches[i]; setValue($0 + (i * 4), touch.x, 'float'); setValue($1 + (i * 4), touch.y, 'float'); setValue($2 + i, touch.isThrust ? 1 : 0, 'i8'); } return count; },  
- 13341045: () => { debugger; }
+ 13340694: ($0, $1, $2, $3) => { var touches = (typeof Module !== 'undefined' && Module.activeTouches) ? Module.activeTouches : []; var count = Math.min(touches.length, $3); for (var i = 0; i < count; ++i) { var touch = touches[i]; setValue($0 + (i * 4), touch.x, 'float'); setValue($1 + (i * 4), touch.y, 'float'); setValue($2 + i, touch.zone | 0, 'i8'); } return count; },  
+ 13341037: () => { debugger; }
 };
 var wasmImports = {
   /** @export */
