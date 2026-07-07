@@ -4,21 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>gm-network-core</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #0f111a;
+      color: #eef2ff;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    .lead { margin: 0 0 20px; color: #b8c0dc; }
+    label { font-size: 0.9rem; color: #b8c0dc; display: block; margin-bottom: 8px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    input[type="text"] {
+      flex: 1 1 320px;
+      min-width: 240px;
+      padding: 10px 12px;
+      border: 1px solid #39405a;
+      border-radius: 8px;
+      background: #171b29;
+      color: #eef2ff;
+    }
+    button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #4c6ef5;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #5c7cfa; }
+    #status { min-height: 1.2em; font-size: 0.95rem; }
+    #status[data-kind="ok"] { color: #69db7c; }
+    #status[data-kind="error"] { color: #ff8787; }
+    #status[data-kind="pending"] { color: #ffd43b; }
+    #game-wrap { display: flex; justify-content: center; margin: 16px 0; }
+    #game {
+      display: block;
+      border: 1px solid #39405a;
+      border-radius: 8px;
+      background: #1a1a2e;
+    }
+    #player-list {
+      white-space: pre-wrap;
+      margin: 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #171b29;
+      border: 1px solid #39405a;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+      color: #ced4da;
+    }
+    .hint { margin-top: 12px; color: #868e96; font-size: 0.85rem; line-height: 1.5; }
+    code { color: #ced4da; }
+  </style>
 </head>
 <body>
   <main>
     <h1>gm-network-core</h1>
-    <p class="lead">Web client for the multiplayer prototype. Connects over WebSocket and renders the same player boxes as the native client.</p>
+    <p class="lead">Web client for the multiplayer prototype. Uses <code>wss://</code> via Playit — not localhost.</p>
 
-    <div class="panel">
-      <label for="server-url">WebSocket server</label>
-      <div class="row">
-        <input id="server-url" type="text" placeholder="wss://your-server.example.com">
-        <button id="connect-btn" type="button">Connect</button>
-      </div>
-      <div id="status">Enter a server URL and click Connect.</div>
+    <label for="server-url">WebSocket server</label>
+    <div class="row">
+      <input id="server-url" type="text" placeholder="wss://nullvector.playit.plus">
+      <button id="connect-btn" type="button">Connect</button>
     </div>
+    <div id="status">Ready. Click Connect.</div>
 
     <div id="game-wrap">
       <canvas id="game" width="960" height="540" aria-label="Game canvas"></canvas>
@@ -27,11 +86,318 @@
     <pre id="player-list">No players yet</pre>
 
     <p class="hint">
-      Run the native server with <code>--server --port 1234 --ws-port 8081</code>, tunnel WebSocket through Playit, then connect here.
-      You can also pass <code>?server=wss://your-host</code> in the page URL.
+      <strong>Playit:</strong> HTTP origin → plain <code>8081</code>, HTTPS origin → TLS <code>8083</code>.<br>
+      Server:
+      <code>gm-network-core.exe --server --port 1234 --ws-port 8081 --ws-tls-port 8083 --ws-cert nullvector.pem --ws-key nullvector.key</code><br>
+      Connect: <code>wss://nullvector.playit.plus</code>
     </p>
   </main>
 
-  <script type="module" src="client.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var MessageType = { Welcome: 1, Input: 2, State: 3, Hello: 4 };
+      var PLAYER_SIZE = 32;
+      var MOVE_SPEED = 180;
+      var WORLD_WIDTH = 960;
+      var WORLD_HEIGHT = 540;
+
+      var canvas = document.getElementById("game");
+      var ctx = canvas.getContext("2d");
+      var statusEl = document.getElementById("status");
+      var serverInput = document.getElementById("server-url");
+      var connectBtn = document.getElementById("connect-btn");
+      var playerListEl = document.getElementById("player-list");
+
+      var keys = {};
+      var players = {};
+      var ws = null;
+      var localPlayerId = null;
+      var lastFrameTime = performance.now();
+
+      function setStatus(text, kind) {
+        statusEl.textContent = text;
+        statusEl.dataset.kind = kind || "";
+      }
+
+      function normalizeServerUrl(value) {
+        var trimmed = (value || "").trim();
+        if (!trimmed) return "";
+        try {
+          var url = new URL(trimmed);
+          url.pathname = url.pathname.replace(/\/+$/, "") || "";
+          url.search = "";
+          url.hash = "";
+          var out = url.toString();
+          return out.replace(/\/$/, "");
+        } catch (e) {
+          return trimmed.replace(/\/+$/, "");
+        }
+      }
+
+      function defaultServerUrl() {
+        var params = new URLSearchParams(window.location.search);
+        return normalizeServerUrl(params.get("server") || "wss://nullvector.playit.plus");
+      }
+
+      function colorToCss(value) {
+        var r = (value >>> 24) & 255;
+        var g = (value >>> 16) & 255;
+        var b = (value >>> 8) & 255;
+        var a = value & 255;
+        return "rgba(" + r + "," + g + "," + b + "," + (a / 255) + ")";
+      }
+
+      function encodeHello() {
+        var buffer = new ArrayBuffer(1);
+        new DataView(buffer).setUint8(0, MessageType.Hello);
+        return buffer;
+      }
+
+      function encodeInput(dx, dy) {
+        var buffer = new ArrayBuffer(9);
+        var view = new DataView(buffer);
+        view.setUint8(0, MessageType.Input);
+        view.setFloat32(1, dx, true);
+        view.setFloat32(5, dy, true);
+        return buffer;
+      }
+
+      function parseMessages(data) {
+        var view = new DataView(data);
+        var messages = [];
+        var offset = 0;
+
+        while (offset < view.byteLength) {
+          var type = view.getUint8(offset);
+
+          if (type === MessageType.Welcome) {
+            if (offset + 9 > view.byteLength) break;
+            messages.push({
+              type: type,
+              playerId: view.getUint32(offset + 1, true),
+              color: view.getUint32(offset + 5, true)
+            });
+            offset += 9;
+            continue;
+          }
+
+          if (type === MessageType.Hello) {
+            messages.push({ type: type });
+            offset += 1;
+            continue;
+          }
+
+          if (type === MessageType.State) {
+            if (offset + 5 > view.byteLength) break;
+            var playerCount = view.getUint32(offset + 1, true);
+            var bytesNeeded = 5 + playerCount * 16;
+            if (offset + bytesNeeded > view.byteLength) break;
+            var list = [];
+            var playerOffset = offset + 5;
+            for (var i = 0; i < playerCount; i++) {
+              list.push({
+                id: view.getUint32(playerOffset, true),
+                x: view.getFloat32(playerOffset + 4, true),
+                y: view.getFloat32(playerOffset + 8, true),
+                color: view.getUint32(playerOffset + 12, true)
+              });
+              playerOffset += 16;
+            }
+            messages.push({ type: type, players: list });
+            offset += bytesNeeded;
+            continue;
+          }
+
+          break;
+        }
+
+        return messages;
+      }
+
+      function clamp(value, lo, hi) {
+        return Math.max(lo, Math.min(value, hi));
+      }
+
+      function resizeCanvas() {
+        var maxWidth = Math.min(window.innerWidth - 32, 960);
+        var maxHeight = Math.min(window.innerHeight - 220, 540);
+        var scale = Math.min(maxWidth / WORLD_WIDTH, maxHeight / WORLD_HEIGHT, 1);
+        canvas.width = WORLD_WIDTH;
+        canvas.height = WORLD_HEIGHT;
+        canvas.style.width = (WORLD_WIDTH * scale) + "px";
+        canvas.style.height = (WORLD_HEIGHT * scale) + "px";
+      }
+
+      function updatePlayerList() {
+        var ids = Object.keys(players).map(Number).sort(function (a, b) { return a - b; });
+        if (!ids.length) {
+          playerListEl.textContent = "No players yet";
+          return;
+        }
+        playerListEl.textContent = ids.map(function (id) {
+          var p = players[id];
+          var marker = id === localPlayerId ? " (you)" : "";
+          return "P" + id + marker + ": (" + p.x.toFixed(0) + ", " + p.y.toFixed(0) + ")";
+        }).join("\n");
+      }
+
+      function render() {
+        ctx.fillStyle = "#1a1a2e";
+        ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+        for (var id in players) {
+          if (!Object.prototype.hasOwnProperty.call(players, id)) continue;
+          var player = players[id];
+          ctx.fillStyle = colorToCss(player.color);
+          ctx.fillRect(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE);
+          if (Number(id) === localPlayerId) {
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x + 1, player.y + 1, PLAYER_SIZE - 2, PLAYER_SIZE - 2);
+          }
+        }
+
+        ctx.fillStyle = "#cccccc";
+        ctx.font = "14px Segoe UI, sans-serif";
+        ctx.fillText("WASD / arrows to move", 12, 22);
+        updatePlayerList();
+      }
+
+      function handleMessage(event) {
+        var data = event.data;
+        if (!(data instanceof ArrayBuffer)) {
+          if (data && data.buffer) {
+            data = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+          } else {
+            return;
+          }
+        }
+
+        var messages = parseMessages(data);
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          if (message.type === MessageType.Welcome) {
+            localPlayerId = message.playerId;
+            players[message.playerId] = {
+              id: message.playerId,
+              x: WORLD_WIDTH * 0.5,
+              y: WORLD_HEIGHT * 0.5,
+              color: message.color
+            };
+            setStatus("Connected as player " + message.playerId, "ok");
+          } else if (message.type === MessageType.State) {
+            for (var j = 0; j < message.players.length; j++) {
+              var p = message.players[j];
+              players[p.id] = p;
+            }
+          }
+        }
+      }
+
+      function connect() {
+        var url = normalizeServerUrl(serverInput.value);
+        serverInput.value = url;
+
+        if (!url) {
+          setStatus("Enter a WebSocket URL", "error");
+          return;
+        }
+
+        if (url.indexOf("127.0.0.1") !== -1 || url.indexOf("localhost") !== -1) {
+          setStatus("Use wss://nullvector.playit.plus from GitHub Pages, not localhost", "error");
+          return;
+        }
+
+        var previous = ws;
+        ws = null;
+        if (previous) {
+          previous.onopen = previous.onmessage = previous.onerror = previous.onclose = null;
+          if (previous.readyState === WebSocket.CONNECTING || previous.readyState === WebSocket.OPEN) {
+            previous.close();
+          }
+        }
+
+        players = {};
+        localPlayerId = null;
+
+        setStatus("Connecting to " + url + "...", "pending");
+
+        var socket = new WebSocket(url);
+        ws = socket;
+        socket.binaryType = "arraybuffer";
+
+        socket.onopen = function () {
+          if (ws !== socket) return;
+          setStatus("Connected, waiting for welcome...", "ok");
+          socket.send(encodeHello());
+        };
+
+        socket.onmessage = handleMessage;
+
+        socket.onclose = function (event) {
+          if (ws !== socket) return;
+          ws = null;
+          setStatus("Disconnected (" + event.code + ")", "error");
+        };
+
+        socket.onerror = function () {
+          if (ws !== socket) return;
+          setStatus("Connection failed — is server + Playit running?", "error");
+        };
+      }
+
+      function frame(now) {
+        var deltaSeconds = Math.min((now - lastFrameTime) / 1000, 0.05);
+        lastFrameTime = now;
+
+        if (ws && ws.readyState === WebSocket.OPEN && localPlayerId != null) {
+          var dx = 0;
+          var dy = 0;
+          if (keys.ArrowLeft || keys.a) dx -= MOVE_SPEED * deltaSeconds;
+          if (keys.ArrowRight || keys.d) dx += MOVE_SPEED * deltaSeconds;
+          if (keys.ArrowUp || keys.w) dy -= MOVE_SPEED * deltaSeconds;
+          if (keys.ArrowDown || keys.s) dy += MOVE_SPEED * deltaSeconds;
+
+          if (dx !== 0 || dy !== 0) {
+            ws.send(encodeInput(dx, dy));
+            var player = players[localPlayerId];
+            if (player) {
+              player.x = clamp(player.x + dx, 0, WORLD_WIDTH - PLAYER_SIZE);
+              player.y = clamp(player.y + dy, 0, WORLD_HEIGHT - PLAYER_SIZE);
+            }
+          }
+        }
+
+        render();
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener("keydown", function (event) {
+        var key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+        keys[key] = true;
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].indexOf(event.key) !== -1) {
+          event.preventDefault();
+        }
+      });
+
+      window.addEventListener("keyup", function (event) {
+        var key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+        keys[key] = false;
+      });
+
+      connectBtn.addEventListener("click", connect);
+      serverInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") connect();
+      });
+      window.addEventListener("resize", resizeCanvas);
+
+      serverInput.value = defaultServerUrl();
+      resizeCanvas();
+      setStatus("Ready — click Connect (uses " + serverInput.value + ")", "ok");
+      requestAnimationFrame(frame);
+    })();
+  </script>
 </body>
 </html>
