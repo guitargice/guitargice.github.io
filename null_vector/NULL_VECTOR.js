@@ -8344,8 +8344,6 @@ async function createWasm() {
 
   var _glfwGetKey = (winid, key) => GLFW.getKey(winid, key);
 
-  var _glfwGetKeyName = (key, scancode) => { throw "glfwGetKeyName not implemented."; };
-
   var _glfwGetMouseButton = (winid, button) => GLFW.getMouseButton(winid, button);
 
   var _glfwGetPrimaryMonitor = () => 1;
@@ -9977,8 +9975,6 @@ var wasmImports = {
   glfwGetJoystickName: _glfwGetJoystickName,
   /** @export */
   glfwGetKey: _glfwGetKey,
-  /** @export */
-  glfwGetKeyName: _glfwGetKeyName,
   /** @export */
   glfwGetMouseButton: _glfwGetMouseButton,
   /** @export */
