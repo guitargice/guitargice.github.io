@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Colour Mamba: Digital Duel</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #gameCanvas { display: block; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#a855f7', '#cbd5e1', '#ffffff', '#92400e'];
+
+        let state = {
+            tA: [[], [], []], tB: [[], [], []],
+            pA: [[], [], [], []], pB: [[], [], [], []],
+            selA: null, selB: null, status: 'playing', winMsg: ''
+        };
+
+        let L = {};
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let W = canvas.width, H = canvas.height;
+
+            // Extra thick blocks
+            let blockW = W * 0.20, blockH = H * 0.06, pegW = W * 0.03, baseW = W * 0.22, baseH = H * 0.02;
+            let maxPegH = blockH * 3.4; // Strict 3-block peg size
+
+            L = {
+                W, H, blockW, blockH, pegW, baseW, baseH, maxPegH,
+                pY: H * 0.92, // Player pegs near bottom
+                tY: H * 0.65, // Targets pushed away from center line to create vertical space
+                pX: [W * 0.125, W * 0.375, W * 0.625, W * 0.875],
+                tX: [W * 0.25, W * 0.50, W * 0.75]
+            };
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function shuffle(arr) {
+            let a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function initGame() {
+            let colors = [0,1,2,3,4,5,6,7,8];
+            let t = shuffle(colors);
+            let pattern = [ [t[0], t[1], t[2]], [t[3], t[4], t[5]], [t[6], t[7], t[8]] ];
+            
+            state.tA = JSON.parse(JSON.stringify(pattern));
+            state.tB = JSON.parse(JSON.stringify(pattern));
+            
+            let sA = shuffle(colors);
+            state.pA = [ [sA[0], sA[1], sA[2]], [sA[3], sA[4], sA[5]], [sA[6], sA[7], sA[8]], [] ];
+            
+            let sB = shuffle(colors);
+            state.pB = [ [sB[0], sB[1], sB[2]], [sB[3], sB[4], sB[5]], [sB[6], sB[7], sB[8]], [] ];
+            
+            state.selA = null; state.selB = null;
+            state.status = 'playing';
+        }
+
+        function drawRoundedRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        function drawBlock(x, y, w, h, cIdx, isSel) {
+            drawRoundedRect(x, y, w, h, 8);
+            ctx.fillStyle = COLORS[cIdx]; ctx.fill();
+            ctx.strokeStyle = isSel ? '#ffffff' : '#000000'; 
+            ctx.lineWidth = isSel ? 6 : 3; 
+            ctx.stroke();
+        }
+
+        function drawPegStack(cx, cy, stack, isTgt, selIdx) {
+            const sc = isTgt ? 0.6 : 1; // Targets are visually scaled down
+            const bH = L.blockH * sc, bW = L.blockW * sc, pH = L.maxPegH * sc;
+            const baseW = L.baseW * sc, baseH = L.baseH * sc, pW = L.pegW * sc;
+
+            // Draw Base
+            ctx.fillStyle = '#8b4513'; 
+            drawRoundedRect(cx - baseW/2, cy - baseH, baseW, baseH, 6 * sc);
+            ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+            
+            // Draw Peg
+            ctx.fillStyle = '#d2b48c';
+            ctx.fillRect(cx - pW/2, cy - baseH - pH, pW, pH);
+            ctx.strokeRect(cx - pW/2, cy - baseH - pH, pW, pH);
+
+            // Draw Blocks
+            for (let i = 0; i < stack.length; i++) {
+                let isTopSel = (selIdx !== null) && (i === stack.length - 1);
+                let bx = cx - bW / 2;
+                let by = cy - baseH - ((i + 1) * bH);
+                if (isTopSel && !isTgt) by -= (bH * 0.5); // Lift block slightly when selected
+                drawBlock(bx, by, bW, bH, stack[i], isTopSel);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, L.W, L.H);
+            
+            // Draw Center dividing line
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4;
+            ctx.setLineDash([15, 15]);
+            ctx.beginPath(); ctx.moveTo(0, L.H/2); ctx.lineTo(L.W, L.H/2); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Render Player A (Bottom view)
+            ctx.save();
+            for(let i=0; i<4; i++) drawPegStack(L.pX[i], L.pY, state.pA[i], false, state.selA === i ? i : null);
+            for(let i=0; i<3; i++) drawPegStack(L.tX[i], L.tY, state.tA[i], true, null);
+            ctx.restore();
+
+            // Render Player B (Top view, inverted)
+            ctx.save();
+            ctx.translate(L.W, L.H); ctx.rotate(Math.PI);
+            for(let i=0; i<4; i++) drawPegStack(L.pX[i], L.pY, state.pB[i], false, state.selB === i ? i : null);
+            for(let i=0; i<3; i++) drawPegStack(L.tX[i], L.tY, state.tB[i], true, null);
+            ctx.restore();
+
+            if (state.status !== 'playing') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, L.W, L.H);
+                
+                ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 36px sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                
+                // Show message correctly oriented for Player A
+                ctx.fillText(state.winMsg, L.W / 2, L.H / 2 + 120);
+                
+                // Show message correctly oriented for Player B
+                ctx.save(); ctx.translate(L.W / 2, L.H / 2 - 120); ctx.rotate(Math.PI);
+                ctx.fillText(state.winMsg, 0, 0); ctx.restore();
+
+                // Draw Play Again Button in center
+                ctx.fillStyle = '#2563eb'; drawRoundedRect(L.W/2 - 110, L.H/2 - 40, 220, 80, 15);
+                ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.stroke();
+                
+                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 24px sans-serif';
+                ctx.fillText('PLAY AGAIN', L.W / 2, L.H / 2);
+            }
+        }
+
+        function checkWin(pStacks, tStacks) {
+            for(let i=0; i<3; i++) {
+                if(pStacks[i].length !== tStacks[i].length) return false;
+                for(let j=0; j<pStacks[i].length; j++) {
+                    if(pStacks[i][j] !== tStacks[i][j]) return false;
+                }
+            }
+            return true;
+        }
+
+        function handleInput(x, y) {
+            if (state.status !== 'playing') {
+                // Determine if Play Again was clicked
+                if (x >= L.W/2-110 && x <= L.W/2+110 && y >= L.H/2-40 && y <= L.H/2+40) initGame();
+                return;
+            }
+
+            let isPB = y < L.H / 2;
+            let mX = isPB ? L.W - x : x; 
+            
+            let col = Math.floor(mX / (L.W / 4));
+            col = Math.max(0, Math.min(3, col));
+            
+            let stacks = isPB ? state.pB : state.pA;
+            let sel = isPB ? state.selB : state.selA;
+
+            if (sel !== null) {
+                if (sel === col) {
+                    // Deselect if same column clicked
+                    if (isPB) state.selB = null; else state.selA = null; 
+                } else {
+                    // Restrict movement to 3 blocks max per peg
+                    if (stacks[col].length < 3) {
+                        stacks[col].push(stacks[sel].pop());
+                        if (isPB) state.selB = null; else state.selA = null;
+
+                        let tStacks = isPB ? state.tB : state.tA;
+                        if (checkWin(stacks, tStacks)) {
+                            state.status = 'won';
+                            state.winMsg = isPB ? 'PLAYER B WINS!' : 'PLAYER A WINS!';
+                        }
+                    } else if (stacks[col].length > 0) {
+                        // Reselect top block of full column if tapped
+                        if (isPB) state.selB = col; else state.selA = col;
+                    }
+                }
+            } else if (stacks[col].length > 0) {
+                // Select block
+                if (isPB) state.selB = col; else state.selA = col;
+            }
+        }
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                handleInput(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            }
+        }, {passive: false});
+
+        canvas.addEventListener('mousedown', (e) => {
+            handleInput(e.clientX, e.clientY);
+        });
+
+        function loop() { draw(); requestAnimationFrame(loop); }
+        initGame();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
