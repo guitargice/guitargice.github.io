@@ -1,230 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Colour Mamba: Digital Duel</title>
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
-        #gameCanvas { display: block; width: 100%; height: 100%; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Colour Mamba: Digital Duel</title>
+  <meta name="description" content="A two-player colour sorting race for one touchscreen.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f172a'/%3E%3Crect x='9' y='12' width='14' height='40' rx='3' fill='%239b4dc0'/%3E%3Crect x='25' y='12' width='14' height='40' rx='3' fill='%2320c7ce'/%3E%3Crect x='41' y='12' width='14' height='40' rx='3' fill='%23e32329'/%3E%3C/svg%3E">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
+    #gameCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    #previewNotice { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box; color: white; font: 18px/1.5 system-ui, sans-serif; text-align: center; background: #0f172a; }
+  </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#a855f7', '#cbd5e1', '#ffffff', '#92400e'];
+<canvas id="gameCanvas" aria-label="Colour Mamba two-player game"></canvas>
+<div id="previewNotice">This preview cannot run the game. Download the HTML file and open it in a web browser, or publish it as a website.</div>
+<script>
+'use strict';
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-        let state = {
-            tA: [[], [], []], tB: [[], [], []],
-            pA: [[], [], [], []], pB: [[], [], [], []],
-            selA: null, selB: null, status: 'playing', winMsg: ''
-        };
+// Rule card colors. Stacks are represented from bottom to top.
+const COLORS = [
+  '#9b4dc0', // 0 purple
+  '#f5db25', // 1 yellow
+  '#111111', // 2 black
+  '#20c7ce', // 3 cyan
+  '#ed5797', // 4 pink
+  '#1f559f', // 5 blue
+  '#ffffff', // 6 white
+  '#086b54', // 7 dark green
+  '#e32329'  // 8 red
+];
+const START = [
+  [2, 1, 0], // black, yellow, purple (top: purple)
+  [5, 4, 3], // blue, pink, cyan (top: cyan)
+  [8, 7, 6], // red, dark green, white (top: white)
+  []
+];
+const copyStacks = stacks => stacks.map(stack => [...stack]);
+const state = { target: [[], [], []], players: [copyStacks(START), copyStacks(START)], selected: [null, null], winner: null };
+let L = {};
+let replayGesture = false;
+const activePointers = new Set();
 
-        let L = {};
+function shuffle(values) {
+  const a = [...values];
+  for (let i = a.length - 1; i > 0; --i) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            let W = canvas.width, H = canvas.height;
+function makeTarget() {
+  // Both players always face the same target from exactly the same start.
+  // Reject targets that are already solved or differ in fewer than six places.
+  let candidate;
+  do {
+    const colors = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    candidate = [colors.slice(0, 3), colors.slice(3, 6), colors.slice(6, 9)];
+  } while (candidate.flat().filter((color, index) => color !== START[Math.floor(index / 3)][index % 3]).length < 6);
+  return candidate;
+}
 
-            // Extra thick blocks
-            let blockW = W * 0.20, blockH = H * 0.06, pegW = W * 0.03, baseW = W * 0.22, baseH = H * 0.02;
-            let maxPegH = blockH * 3.4; // Strict 3-block peg size
+function initGame() {
+  state.target = makeTarget();
+  state.players = [copyStacks(START), copyStacks(START)];
+  state.selected = [null, null];
+  state.winner = null;
+}
 
-            L = {
-                W, H, blockW, blockH, pegW, baseW, baseH, maxPegH,
-                pY: H * 0.92, // Player pegs near bottom
-                tY: H * 0.65, // Targets pushed away from center line to create vertical space
-                pX: [W * 0.125, W * 0.375, W * 0.625, W * 0.875],
-                tX: [W * 0.25, W * 0.50, W * 0.75]
-            };
-        }
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const W = window.innerWidth, H = window.innerHeight;
+  canvas.style.width = `${W}px`;
+  canvas.style.height = `${H}px`;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
 
-        window.addEventListener('resize', resize);
-        resize();
+  // Fit both identical rotated boards into a half-screen, including landscape.
+  const half = H / 2;
+  const blockH = Math.min(H * 0.06, half * 0.125);
+  const blockW = Math.min(W * 0.20, W / 4 - 8);
+  const baseH = Math.max(4, Math.min(H * 0.02, half * 0.045));
+  const maxPegH = blockH * 3.4;
+  L = {
+    W, H, blockW, blockH, baseH, maxPegH,
+    pegW: Math.max(4, Math.min(W * 0.03, blockW * 0.16)),
+    baseW: Math.min(W * 0.22, W / 4 - 4),
+    pY: H * 0.94, tY: H * 0.64,
+    pX: [W * 0.125, W * 0.375, W * 0.625, W * 0.875],
+    tX: [W * 0.25, W * 0.50, W * 0.75]
+  };
+}
+window.addEventListener('resize', resize);
+resize();
 
-        function shuffle(arr) {
-            let a = [...arr];
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
+function roundedRect(x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
-        function initGame() {
-            let colors = [0,1,2,3,4,5,6,7,8];
-            let t = shuffle(colors);
-            let pattern = [ [t[0], t[1], t[2]], [t[3], t[4], t[5]], [t[6], t[7], t[8]] ];
-            
-            state.tA = JSON.parse(JSON.stringify(pattern));
-            state.tB = JSON.parse(JSON.stringify(pattern));
-            
-            let sA = shuffle(colors);
-            state.pA = [ [sA[0], sA[1], sA[2]], [sA[3], sA[4], sA[5]], [sA[6], sA[7], sA[8]], [] ];
-            
-            let sB = shuffle(colors);
-            state.pB = [ [sB[0], sB[1], sB[2]], [sB[3], sB[4], sB[5]], [sB[6], sB[7], sB[8]], [] ];
-            
-            state.selA = null; state.selB = null;
-            state.status = 'playing';
-        }
+function drawBlock(x, y, w, h, color, selected) {
+  roundedRect(x, y, w, h, Math.min(8, h * 0.18));
+  ctx.fillStyle = COLORS[color]; ctx.fill();
+  ctx.strokeStyle = selected ? '#ffffff' : '#475569';
+  ctx.lineWidth = selected ? 4 : 2;
+  ctx.stroke();
+}
 
-        function drawRoundedRect(x, y, w, h, r) {
-            ctx.beginPath();
-            ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
-            ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r);
-            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
-            ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r);
-            ctx.quadraticCurveTo(x, y, x + r, y);
-            ctx.closePath();
-        }
+function drawPegStack(cx, cy, stack, target, selected) {
+  const s = target ? 0.6 : 1;
+  const bh = L.blockH * s, bw = L.blockW * s;
+  const baseH = L.baseH * s, baseW = L.baseW * s;
+  const pegH = L.maxPegH * s, pegW = L.pegW * s;
 
-        function drawBlock(x, y, w, h, cIdx, isSel) {
-            drawRoundedRect(x, y, w, h, 8);
-            ctx.fillStyle = COLORS[cIdx]; ctx.fill();
-            ctx.strokeStyle = isSel ? '#ffffff' : '#000000'; 
-            ctx.lineWidth = isSel ? 6 : 3; 
-            ctx.stroke();
-        }
+  ctx.fillStyle = '#8b4513';
+  roundedRect(cx - baseW / 2, cy - baseH, baseW, baseH, 5 * s);
+  ctx.fill(); ctx.strokeStyle = '#423022'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#d2b48c';
+  ctx.fillRect(cx - pegW / 2, cy - baseH - pegH, pegW, pegH);
+  ctx.strokeRect(cx - pegW / 2, cy - baseH - pegH, pegW, pegH);
 
-        function drawPegStack(cx, cy, stack, isTgt, selIdx) {
-            const sc = isTgt ? 0.6 : 1; // Targets are visually scaled down
-            const bH = L.blockH * sc, bW = L.blockW * sc, pH = L.maxPegH * sc;
-            const baseW = L.baseW * sc, baseH = L.baseH * sc, pW = L.pegW * sc;
+  stack.forEach((color, i) => {
+    const picked = !target && selected && i === stack.length - 1;
+    const y = cy - baseH - (i + 1) * bh - (picked ? bh * 0.42 : 0);
+    drawBlock(cx - bw / 2, y, bw, bh, color, picked);
+  });
+}
 
-            // Draw Base
-            ctx.fillStyle = '#8b4513'; 
-            drawRoundedRect(cx - baseW/2, cy - baseH, baseW, baseH, 6 * sc);
-            ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
-            
-            // Draw Peg
-            ctx.fillStyle = '#d2b48c';
-            ctx.fillRect(cx - pW/2, cy - baseH - pH, pW, pH);
-            ctx.strokeRect(cx - pW/2, cy - baseH - pH, pW, pH);
+function drawHalf(player) {
+  for (let i = 0; i < 4; ++i) drawPegStack(L.pX[i], L.pY, state.players[player][i], false, state.selected[player] === i);
+  for (let i = 0; i < 3; ++i) drawPegStack(L.tX[i], L.tY, state.target[i], true, false);
+}
 
-            // Draw Blocks
-            for (let i = 0; i < stack.length; i++) {
-                let isTopSel = (selIdx !== null) && (i === stack.length - 1);
-                let bx = cx - bW / 2;
-                let by = cy - baseH - ((i + 1) * bH);
-                if (isTopSel && !isTgt) by -= (bH * 0.5); // Lift block slightly when selected
-                drawBlock(bx, by, bW, bH, stack[i], isTopSel);
-            }
-        }
+function draw() {
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, L.W, L.H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 3;
+  ctx.setLineDash([12, 12]); ctx.beginPath(); ctx.moveTo(0, L.H / 2); ctx.lineTo(L.W, L.H / 2); ctx.stroke(); ctx.setLineDash([]);
+  drawHalf(0);
+  ctx.save(); ctx.translate(L.W, L.H); ctx.rotate(Math.PI); drawHalf(1); ctx.restore();
 
-        function draw() {
-            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, L.W, L.H);
-            
-            // Draw Center dividing line
-            ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4;
-            ctx.setLineDash([15, 15]);
-            ctx.beginPath(); ctx.moveTo(0, L.H/2); ctx.lineTo(L.W, L.H/2); ctx.stroke();
-            ctx.setLineDash([]);
+  if (state.winner !== null) {
+    ctx.fillStyle = 'rgba(0,0,0,0.82)'; ctx.fillRect(0, 0, L.W, L.H);
+    const label = `PLAYER ${state.winner === 0 ? 'A' : 'B'} WINS!`;
+    ctx.fillStyle = '#fbbf24'; ctx.font = `bold ${Math.min(36, L.W * 0.07)}px sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, L.W / 2, L.H / 2 + L.H * 0.16);
+    ctx.save(); ctx.translate(L.W / 2, L.H / 2 - L.H * 0.16); ctx.rotate(Math.PI);
+    ctx.fillText(label, 0, 0); ctx.restore();
+    const bw = Math.min(220, L.W * 0.55), bh = Math.min(80, L.H * 0.12);
+    roundedRect(L.W / 2 - bw / 2, L.H / 2 - bh / 2, bw, bh, 12);
+    ctx.fillStyle = '#2563eb'; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold ${Math.min(24, bw * 0.13)}px sans-serif`;
+    ctx.fillText('PLAY AGAIN', L.W / 2, L.H / 2);
+  }
+}
 
-            // Render Player A (Bottom view)
-            ctx.save();
-            for(let i=0; i<4; i++) drawPegStack(L.pX[i], L.pY, state.pA[i], false, state.selA === i ? i : null);
-            for(let i=0; i<3; i++) drawPegStack(L.tX[i], L.tY, state.tA[i], true, null);
-            ctx.restore();
+function isSolved(stacks) {
+  return stacks[3].length === 0 && state.target.every((target, peg) =>
+    stacks[peg].length === 3 && target.every((color, level) => stacks[peg][level] === color));
+}
 
-            // Render Player B (Top view, inverted)
-            ctx.save();
-            ctx.translate(L.W, L.H); ctx.rotate(Math.PI);
-            for(let i=0; i<4; i++) drawPegStack(L.pX[i], L.pY, state.pB[i], false, state.selB === i ? i : null);
-            for(let i=0; i<3; i++) drawPegStack(L.tX[i], L.tY, state.tB[i], true, null);
-            ctx.restore();
+function handleInput(x, y) {
+  if (state.winner !== null) {
+    const bw = Math.min(220, L.W * 0.55), bh = Math.min(80, L.H * 0.12);
+    if (Math.abs(x - L.W / 2) <= bw / 2 && Math.abs(y - L.H / 2) <= bh / 2) {
+      initGame();
+      replayGesture = true; // Ignore other fingers from the replay tap until all lift.
+    }
+    return;
+  }
 
-            if (state.status !== 'playing') {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, L.W, L.H);
-                
-                ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 36px sans-serif';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                
-                // Show message correctly oriented for Player A
-                ctx.fillText(state.winMsg, L.W / 2, L.H / 2 + 120);
-                
-                // Show message correctly oriented for Player B
-                ctx.save(); ctx.translate(L.W / 2, L.H / 2 - 120); ctx.rotate(Math.PI);
-                ctx.fillText(state.winMsg, 0, 0); ctx.restore();
+  const player = y < L.H / 2 ? 1 : 0;
+  const localX = player ? L.W - x : x;
+  const localY = player ? L.H - y : y;
+  // Only the playable posts respond; taps on the targets or middle do nothing.
+  if (localY < L.pY - L.baseH - L.maxPegH - L.blockH * 0.5 || localY > L.pY + L.blockH * 0.35) return;
+  const peg = Math.floor(localX / (L.W / 4));
+  if (peg < 0 || peg > 3) return;
 
-                // Draw Play Again Button in center
-                ctx.fillStyle = '#2563eb'; drawRoundedRect(L.W/2 - 110, L.H/2 - 40, 220, 80, 15);
-                ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.stroke();
-                
-                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 24px sans-serif';
-                ctx.fillText('PLAY AGAIN', L.W / 2, L.H / 2);
-            }
-        }
+  const stacks = state.players[player];
+  const from = state.selected[player];
+  if (from === null) {
+    if (stacks[peg].length) state.selected[player] = peg;
+  } else if (from === peg) {
+    state.selected[player] = null;
+  } else if (stacks[peg].length < 3) {
+    stacks[peg].push(stacks[from].pop());
+    state.selected[player] = null;
+    // A win is recorded synchronously. Subsequent pointer events cannot move blocks.
+    if (isSolved(stacks)) state.winner = player;
+  } else if (stacks[peg].length) {
+    state.selected[player] = peg;
+  }
+}
 
-        function checkWin(pStacks, tStacks) {
-            for(let i=0; i<3; i++) {
-                if(pStacks[i].length !== tStacks[i].length) return false;
-                for(let j=0; j<pStacks[i].length; j++) {
-                    if(pStacks[i][j] !== tStacks[i][j]) return false;
-                }
-            }
-            return true;
-        }
+// Each finger has its own pointerdown event. There is no global touch lock,
+// so A and B may select and move blocks independently at the same time.
+canvas.addEventListener('pointerdown', event => {
+  event.preventDefault();
+  if (activePointers.has(event.pointerId)) return;
+  activePointers.add(event.pointerId);
+  if (replayGesture) return;
+  const bounds = canvas.getBoundingClientRect();
+  handleInput((event.clientX - bounds.left) * L.W / bounds.width,
+              (event.clientY - bounds.top) * L.H / bounds.height);
+});
+function releasePointer(event) {
+  activePointers.delete(event.pointerId);
+  if (activePointers.size === 0) replayGesture = false;
+}
+window.addEventListener('pointerup', releasePointer);
+window.addEventListener('pointercancel', releasePointer);
+window.addEventListener('blur', () => { activePointers.clear(); replayGesture = false; });
 
-        function handleInput(x, y) {
-            if (state.status !== 'playing') {
-                // Determine if Play Again was clicked
-                if (x >= L.W/2-110 && x <= L.W/2+110 && y >= L.H/2-40 && y <= L.H/2+40) initGame();
-                return;
-            }
-
-            let isPB = y < L.H / 2;
-            let mX = isPB ? L.W - x : x; 
-            
-            let col = Math.floor(mX / (L.W / 4));
-            col = Math.max(0, Math.min(3, col));
-            
-            let stacks = isPB ? state.pB : state.pA;
-            let sel = isPB ? state.selB : state.selA;
-
-            if (sel !== null) {
-                if (sel === col) {
-                    // Deselect if same column clicked
-                    if (isPB) state.selB = null; else state.selA = null; 
-                } else {
-                    // Restrict movement to 3 blocks max per peg
-                    if (stacks[col].length < 3) {
-                        stacks[col].push(stacks[sel].pop());
-                        if (isPB) state.selB = null; else state.selA = null;
-
-                        let tStacks = isPB ? state.tB : state.tA;
-                        if (checkWin(stacks, tStacks)) {
-                            state.status = 'won';
-                            state.winMsg = isPB ? 'PLAYER B WINS!' : 'PLAYER A WINS!';
-                        }
-                    } else if (stacks[col].length > 0) {
-                        // Reselect top block of full column if tapped
-                        if (isPB) state.selB = col; else state.selA = col;
-                    }
-                }
-            } else if (stacks[col].length > 0) {
-                // Select block
-                if (isPB) state.selB = col; else state.selA = col;
-            }
-        }
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); 
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                handleInput(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-            }
-        }, {passive: false});
-
-        canvas.addEventListener('mousedown', (e) => {
-            handleInput(e.clientX, e.clientY);
-        });
-
-        function loop() { draw(); requestAnimationFrame(loop); }
-        initGame();
-        requestAnimationFrame(loop);
-    </script>
+function loop() {
+  draw();
+  const notice = document.getElementById('previewNotice');
+  if (notice) notice.remove();
+  requestAnimationFrame(loop);
+}
+initGame();
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
